@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import datetime
 import os
 import sys
 from pathlib import Path
@@ -39,14 +40,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'rest_framework',
-    'users',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -137,8 +139,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # django-rest-framework
 REST_FRAMEWORK = {
+    # 认证
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        # 'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+    ),
+}
 
+# JWT
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),  # 有效期
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'apps.users.utils.jwt_response_payload_handler',
+    'JWT_AUTH_HEADER_PREFIX': 'JWT-TOKEN',    # jwt前缀，默认为JWT
 }
 
 # SENTRY
 SENTRY_DSN = os.getenv('SENTRY_DSN')
+
+# 自定义用户类
+AUTH_USER_MODEL = 'users.Users'

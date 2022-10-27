@@ -11,6 +11,7 @@ python ..\manage.py startapp users
 ### Sentry
 定义： sentry是一个基于Django构建的现代化的实时事件日志监控、记录和聚合平台。错误追踪工具
 - 部署服务：
+> https://develop.sentry.dev/self-hosted/
 > https://github.com/getsentry/self-hosted/releases
 
 - python客户端
