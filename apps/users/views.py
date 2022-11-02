@@ -1,49 +1,107 @@
-from datetime import datetime, timedelta
-
-from django.contrib import auth
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
-
-# Create your views here.
-from django.views import View
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication, SessionAuthentication
+from django.forms import model_to_dict
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework_jwt.views import ObtainJSONWebToken
+
+from utils.response import success
+from .models import Users
+from .serializers import JwtTokenSerializer, UserSerializer
 
 
-class LoginView(View):
+# Create your views here.
+
+
+class LoginView(ObtainJSONWebToken):
+    """
+        # 登录并签发token
+        # 其中头部信息的组装，token的生成
+            # rest_framework_jwt.utils.jwt_payload_handler
+            # rest_framework_jwt.utils.jwt_encode_handler
+    """
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.validated_data.get('user')
+            token = serializer.validated_data.get('token')
+
+            user_info = model_to_dict(user, fields=['id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee'])
+
+            data = {
+                'user': user_info,
+                'token': token
+            }
+            return success(data)
+
+
+class WechatLoginView(APIView):
+    """
+        微信登录视图
+        参考：
+            - rest_framework.generics.CreateAPIView
+            - rest_framework_jwt.views.JSONWebTokenAPIView
+    """
+
+    serializer_class = JwtTokenSerializer
+
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+            'view': self
+        }
+
+    def get_serializer_class(self):
+        assert self.serializer_class is not None, (
+            self.__class__.__name__
+        )
+        return self.serializer_class
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs.setdefault('context', self.get_serializer_context())     # 序列化器实例化的时，将request、view实例注入到序列化器中，供序列化器使用
+        return serializer_class(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = auth.authenticate(username=username, password=password)
-        if not user:
-            return HttpResponse({"code": 0,
-                                "msg": "用户名或密码不对!"})
-        # 删除原有的Token
-        old_token = Token.objects.filter(user=user)
-        old_token.delete()
-        # 创建新的Token
-        token = Token.objects.create(user=user)
-        return JsonResponse({"code": 0,
-                             "msg": "login success!",
-                             "username": user.username,
-                             "token": token.key})
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data.get('user')
+            token = serializer.validated_data.get('token')
+
+            user_info = model_to_dict(user, fields=['id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee'])
+            data = {
+                'user': user_info,
+                'token': token
+            }
+            return success(data)
 
 
-class UserInfo(APIView):
+class UserInfoView(APIView):
     authentication_classes = (JSONWebTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    serializer_class = UserSerializer
+
+    def get_object(self, pk):
+        if not pk:
+            # 获取当前登录用户详情
+            return self.request.user
+        else:
+            # 获取指定用户详情
+            return Users.objects.get(pk=pk)
+
+    def get_serializer_class(self):
+        assert self.serializer_class is not None, ( self.__class__.__name__ )
+        return self.serializer_class
+
+    def get_serializer(self, instance):
+        serializer_class = self.get_serializer_class()
+        return serializer_class(instance)
+
     def get(self, request, uid):
-        from apps.users.models import Users
-        user = Users.objects.get(pk=uid)
-        data = {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email
-        }
-        return JsonResponse({'code': 200, 'msg': '请求成功', 'data': data})
+        instance = self.get_object(uid)
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        return success(data)
 

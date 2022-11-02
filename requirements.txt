@@ -3,3 +3,5 @@ djangorestframework==3.14
 Django-redis==5.2.0
 sentry-sdk
 python-dotenv
+djangorestframework-jwt
+requests

@@ -1,13 +1,9 @@
 from django.urls import path
-from rest_framework_jwt.views import obtain_jwt_token
-from rest_framework.authtoken import views
-
-from apps.users.views import LoginView, UserInfo
+from . import views
 
 urlpatterns = [
-    path('login', views.obtain_auth_token),    # 登录并签发token
-    path('jwt_auth', obtain_jwt_token),
-    path('user/<int:uid>', UserInfo.as_view()),
-    # 微信登录
-    # path('wechat/login/', ),
+    path('login', views.LoginView.as_view()),
+    path('wechat/login', views.WechatLoginView.as_view()),
+    path('current_user/info', views.UserInfoView.as_view()),
+    path('user/<int:uid>', views.UserInfoView.as_view())
 ]

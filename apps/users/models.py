@@ -14,8 +14,16 @@ class Users(AbstractUser):
     mobile = models.CharField(max_length=11, unique=True, verbose_name='手机号')
     wx_open_id = models.CharField(max_length=128, verbose_name="微信openId")
     is_employee = models.BooleanField(default=False, verbose_name="是否为内部员工")
+    avatar = models.CharField(max_length=128, null=True, blank=True, verbose_name='头像')
+    nickname = models.CharField(max_length=7, null=True, blank=True, verbose_name='昵称')
 
     class Meta:
         db_table = 'fire_users'
         verbose_name = '用户'
         verbose_name_plural = verbose_name
+
+    def generate_username(self):
+        """
+            默认用户名：fire_<uuid>
+        """
+        pass

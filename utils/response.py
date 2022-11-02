@@ -1,11 +1,11 @@
-from django.http import JsonResponse
+from rest_framework.response import Response
 
 
 def success(data=None, msg='success.'):
     if data is None:
         data = {}
-    return JsonResponse({'code': 200, 'msg': msg, 'data': data})
+    return Response({'code': 0, 'msg': msg, 'data': data})
 
 
 def fail(msg, code=500):
-    return JsonResponse({'code': code, msg: msg})
+    return Response({'code': code, msg: msg})
