@@ -6,7 +6,7 @@ from rest_framework_jwt.views import ObtainJSONWebToken
 
 from utils.response import success
 from .models import Users
-from .serializers import JwtTokenSerializer, UserSerializer
+from .serializers import WechatLoginSerializer, UserSerializer
 
 
 # Create your views here.
@@ -37,17 +37,20 @@ class LoginView(ObtainJSONWebToken):
 
 class WechatLoginView(APIView):
     """
-        微信登录视图
+        小程序登录流程：
+            1、小程序获取code
+            2、将code发送到开发者服务器
+            3、开发者服务器通过微信接口服务校验登录凭证
         参考：
             - rest_framework.generics.CreateAPIView
             - rest_framework_jwt.views.JSONWebTokenAPIView
     """
-
-    serializer_class = JwtTokenSerializer
+    serializer_class = WechatLoginSerializer
 
     def get_serializer_context(self):
         return {
             'request': self.request,
+            'format': self.format_kwarg,
             'view': self
         }
 
@@ -65,15 +68,8 @@ class WechatLoginView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data.get('user')
-            token = serializer.validated_data.get('token')
-
-            user_info = model_to_dict(user, fields=['id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee'])
-            data = {
-                'user': user_info,
-                'token': token
-            }
-            return success(data)
+            serializer.save()
+            return success({'token': self.token})
 
 
 class UserInfoView(APIView):
@@ -99,6 +95,7 @@ class UserInfoView(APIView):
         return serializer_class(instance)
 
     def get(self, request, uid):
+        request.headers
         instance = self.get_object(uid)
         serializer = self.get_serializer(instance)
         data = serializer.data

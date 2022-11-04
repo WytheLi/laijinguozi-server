@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
-from django.utils.translation import ugettext as _
 
-from users.models import Users
+from users.models import Users, WechatUser
+from utils.wechat_sdk import wechat_login
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -17,36 +17,36 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee')
 
 
-class JwtTokenSerializer(serializers.ModelSerializer):
+class WechatLoginSerializer(serializers.Serializer):
 
-    def validate(self, attrs):
-        wx_open_id = attrs.get('wx_open_id')
+    wx_code = serializers.CharField(write_only=True)
+    mobile = serializers.CharField(max_length=11, write_only=True)
 
-        if wx_open_id:
-            # TODO 微信登录
-            if lambda x: True:
-                user = Users.objects.get(wx_open_id=wx_open_id)
+    def create(self, validated_data):
+        wx_code = validated_data.pop('wx_code')
+        mobile = validated_data.pop('mobile')
 
-            if user:
-                if not user.is_active:
-                    msg = _('User account is disabled.')
-                    raise serializers.ValidationError(msg)
+        session_key, openid = wechat_login.jscode2session(wx_code)
 
-                payload = jwt_payload_handler(user)
-
-                return {
-                    'token': jwt_encode_handler(payload),   # 生成jwt token
-                    'user': user
-                }
-
-            else:
-                msg = _('Unable to log in with provided credentials.')
-                raise serializers.ValidationError(msg)
+        wechat_user = WechatUser.objects.filter(openid=openid).select_related('user').first()
+        if wechat_user:
+            # 签发JWT token
+            user = wechat_user.user
+            payload = jwt_payload_handler(user)
+            token = jwt_encode_handler(payload)
+            user.token = token
         else:
-            msg = _('Must include "{wx_open_id}" and "password".')
-            msg = msg.format(wx_open_id=attrs.get('wx_open_id'))
-            raise serializers.ValidationError(msg)
+            user = Users.objects.get(mobile=mobile)
 
-    class Meta:
-        model = Users
-        fields = ('wx_open_id',)
+            WechatUser.objects.create(user=user, openid=openid, session_key=session_key)
+
+            # 签发JWT token
+            payload = jwt_payload_handler(user)
+            token = jwt_encode_handler(payload)
+            user.token = token
+        # 将token给到视图，用以响应给前端。
+        # 因为context是实例化序列化器类的时候注入的。用来实现视图和序列化器之间的参数传递。
+        # 这里validated_data只是一个形参，不能通过它去传递值，在validate(self, validated_data)可以是因为函数return了validated_data
+        self.context['view'].user = user
+        self.context['view'].token = token
+        return user

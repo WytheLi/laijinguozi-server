@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from utils.models import BaseModel
 # Create your models here.
 
 
@@ -27,3 +28,17 @@ class Users(AbstractUser):
             默认用户名：fire_<uuid>
         """
         pass
+
+
+class WechatUser(BaseModel):
+    """
+        微信用户
+    """
+    user = models.ForeignKey(Users, models.CASCADE, verbose_name='用户')
+    openid = models.CharField(max_length=128, unique=True, verbose_name='open_id')
+    session_key = models.CharField(max_length=128, verbose_name='对用户数据进行 加密签名 的密钥')     # 项目统一用的 secret_key
+
+    class Meta:
+        db_table = 'fire_wechat_user'
+        verbose_name = '微信用户'
+        verbose_name_plural = verbose_name
