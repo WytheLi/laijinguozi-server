@@ -1,7 +1,6 @@
 Django==3.2
 djangorestframework==3.14
 Django-redis==5.2.0
-sentry-sdk
-python-dotenv
-djangorestframework-jwt
-requests
+sentry-sdk==1.10.1
+python-dotenv==0.21.0
+djangorestframework-jwt==1.11.0
