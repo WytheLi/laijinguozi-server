@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-_ht@vhiv!6#%f-m@75@y2fc(g#&i$kvs!#m5tp%-c9^f*2hvh8'
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-_ht@vhiv!6#%f-m@75@y2fc(g#&i$kvs!#m5tp%-c9^f*2hvh8')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',      # 否则引发报错：`Forbidden (CSRF cookie not set.)`
+    'apps.users.utils.JwtTokenBlackMiddleware',     # 主动失效的token拒绝访问
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -165,3 +166,24 @@ AUTH_USER_MODEL = 'users.Users'
 
 # 自定义
 AUTHENTICATION_BACKENDS = ['apps.users.utils.AuthBackend']
+
+# redis cache
+redis_hostname = os.getenv('REDIS_HOSTNAME', '127.0.0.1')
+redis_port = os.getenv('REDIS_PORT', 6379)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{redis_hostname}:{redis_port}/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "token_blacklist": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{redis_hostname}:{redis_port}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}

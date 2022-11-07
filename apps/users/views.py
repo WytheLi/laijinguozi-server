@@ -1,13 +1,18 @@
+import time
+
 from django.forms import model_to_dict
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import ObtainJSONWebToken
 
 from utils.response import success
 from .models import Users
 from .serializers import WechatLoginSerializer, UserSerializer
 
+jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
 # Create your views here.
 
@@ -102,3 +107,20 @@ class UserInfoView(APIView):
 
         return success(data)
 
+
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        """
+            登出，在redis里面添加token黑名单。实现jwt token主动失效
+                key: jwt-token
+                value: <失效时间>
+                expiry: <token有效期>
+        """
+        authorization = request.headers.get('Authorization')
+        token = authorization.split(' ')[1]
+        payload = jwt_decode_handler(token)
+        redis_conn = get_redis_connection('token_blacklist')
+        redis_conn.setex(token, payload['exp'], time.time())
+        return success(msg='logout success.')
