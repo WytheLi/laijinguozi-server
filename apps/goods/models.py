@@ -28,7 +28,7 @@ class GoodsCategory(BaseModel):
 
 class Brand(BaseModel):
     name = models.CharField(max_length=20, verbose_name='名称')
-    logo = models.ImageField(verbose_name='Logo图片')
+    logo = models.TextField(verbose_name='Logo图片')
     first_letter = models.CharField(max_length=1, verbose_name='品牌首字母')
 
     class Meta:
@@ -87,7 +87,7 @@ class Goods(BaseModel):
 
 
 class Stock(BaseModel):
-    goods = models.ForeignKey(Goods, models.CASCADE, related_name='goods', verbose_name='商品')
+    goods = models.ForeignKey(Goods, models.CASCADE, verbose_name='商品')
     stock = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='可用库存')
     lock_stock = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='占用库存')
 
@@ -101,7 +101,7 @@ class GoodsComment(BaseModel):
     """
         评论，附图评价送积分
     """
-    goods = models.ForeignKey(Goods, models.CASCADE, related_name='goods', verbose_name='商品')
+    goods = models.ForeignKey(Goods, models.CASCADE, verbose_name='商品')
     score = models.IntegerField(default=10, verbose_name='每两分为一星，10分为五星')
     reviews = models.TextField(verbose_name='评语')
     images = models.TextField(verbose_name='图片，多张图片","分割')

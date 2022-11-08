@@ -19,34 +19,55 @@ class UserSerializer(serializers.ModelSerializer):
 
 class WechatLoginSerializer(serializers.Serializer):
 
-    wx_code = serializers.CharField(write_only=True)
-    mobile = serializers.CharField(max_length=11, write_only=True)
+    code = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
-        wx_code = validated_data.pop('wx_code')
-        mobile = validated_data.pop('mobile')
+        js_code = validated_data.pop('code')
 
-        session_key, openid = wechat_login.jscode2session(wx_code)
+        result = wechat_login.code2session(js_code)
 
-        wechat_user = WechatUser.objects.filter(openid=openid).select_related('user').first()
-        if wechat_user:
-            # 签发JWT token
+        if result.get('errcode') != 0:
+            raise serializers.ValidationError('微信获取openid失败')
+
+        wechat_user = WechatUser.objects.filter(openid=result['openid']).first()
+        if wechat_user and wechat_user.user:
+            # 签发token
             user = wechat_user.user
             payload = jwt_payload_handler(user)
             token = jwt_encode_handler(payload)
-            user.token = token
+            validated_data['token'] = token
+        if wechat_user and not wechat_user.user:
+            validated_data['openid'] = result['openid']     # 严格来说是需要使用session_key加密openid，这里偷懒明文传输
         else:
-            user = Users.objects.get(mobile=mobile)
+            WechatUser.objects.create(openid=result['openid'], session_key=result['session_key'])
+            validated_data['openid'] = result['openid']
+        self.context['view'].validated_data = validated_data
+        return wechat_user
 
-            WechatUser.objects.create(user=user, openid=openid, session_key=session_key)
 
-            # 签发JWT token
-            payload = jwt_payload_handler(user)
-            token = jwt_encode_handler(payload)
-            user.token = token
-        # 将token给到视图，用以响应给前端。
-        # 因为context是实例化序列化器类的时候注入的。用来实现视图和序列化器之间的参数传递。
-        # 这里validated_data只是一个形参，不能通过它去传递值，在validate(self, validated_data)可以是因为函数return了validated_data
-        self.context['view'].user = user
-        self.context['view'].token = token
+class WechatRegisterSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    code = serializers.CharField(write_only=True)
+    openid = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+        code = validated_data.pop('code')
+        openid = validated_data.pop('openid')
+        result = wechat_login.get_phone_number(code)
+        if result.get('errcode') != 0:
+            raise serializers.ValidationError('微信获取手机号失败。')
+
+        validated_data['mobile'] = result['phone_info']['purePhoneNumber']
+        user = super(WechatRegisterSerializer, self).create(validated_data)
+        WechatUser.objects.filter(openid=openid).update(user=user)
+
+        # 签发token
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        validated_data['token'] = token
+        self.context['view'].validated_data = validated_data
         return user
+
+    class Meta:
+        model = Users
+        fields = ('id', 'nickname', 'avatar', 'code', 'openid')

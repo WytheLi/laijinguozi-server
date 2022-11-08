@@ -2,15 +2,17 @@ import time
 
 from django.forms import model_to_dict
 from django_redis import get_redis_connection
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import ObtainJSONWebToken
 
-from utils.response import success
+from utils import status_code
+from utils.response import success, fail
 from .models import Users
-from .serializers import WechatLoginSerializer, UserSerializer
+from .serializers import WechatLoginSerializer, UserSerializer, WechatRegisterSerializer
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
@@ -72,9 +74,26 @@ class WechatLoginView(APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return success({'token': self.token})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        token = self.validated_data.get('token')
+        if token:
+            return success({'token': token})
+        else:
+            return fail(**status_code.WX_LOGIN_ERROR)
+
+
+class WechatRegisterView(GenericAPIView):
+
+    serializer_class = WechatRegisterSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data = serializer.data
+        data['token'] = self.validated_data['token']
+        return success(data)
 
 
 class UserInfoView(APIView):
