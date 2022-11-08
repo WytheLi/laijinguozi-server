@@ -17,6 +17,7 @@ class Users(AbstractUser):
     is_employee = models.BooleanField(default=False, verbose_name="是否为内部员工")
     avatar = models.CharField(max_length=128, null=True, blank=True, verbose_name='头像')
     nickname = models.CharField(max_length=7, null=True, blank=True, verbose_name='昵称')
+    total_points = models.IntegerField(verbose_name='总积分')
 
     class Meta:
         db_table = 'fire_users'
@@ -41,4 +42,60 @@ class WechatUser(BaseModel):
     class Meta:
         db_table = 'fire_wechat_user'
         verbose_name = '微信用户'
+        verbose_name_plural = verbose_name
+
+
+class DeliveryAddress(BaseModel):
+    """
+        用户的收货地址
+    """
+    user = models.ForeignKey(Users, models.CASCADE, related_name='address', verbose_name='用户')
+    province = models.ForeignKey('areas.Area', on_delete=models.PROTECT, related_name='province', verbose_name='省')
+    city = models.ForeignKey('areas.Area', on_delete=models.PROTECT, related_name='city', verbose_name='市')
+    district = models.ForeignKey('areas.Area', on_delete=models.PROTECT, related_name='district', verbose_name='区')
+    detailed_address = models.CharField(max_length=256, verbose_name='详细地址')
+    longitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='经度')
+    latitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='纬度')
+    mobile = models.CharField(max_length=11, verbose_name='手机号码')
+    telephone = models.CharField(max_length=10, null=True, blank=True, verbose_name='固定电话')
+    email = models.CharField(max_length=30, null=True, blank=True, verbose_name='电子邮箱')
+    is_deleted = models.BooleanField(default=False, verbose_name='逻辑删除')
+    is_default = models.BooleanField(default=False, verbose_name='默认地址')
+
+    class Meta:
+        db_table = 'fruits_delivery_address'
+        verbose_name = '收货地址'
+        verbose_name_plural = verbose_name
+
+
+class Logs(BaseModel):
+
+    action_map = {
+        'pay_points': 1,
+        'comment_points': 2,
+        'points_deduction': 3,
+        'on_sale': 4,
+        'off_sale': 5
+    }
+
+    ACTION_ENUM = (
+        (1, '下单获取积分'),
+        (2, '评论获取积分'),
+        (3, '积分抵扣'),
+        (4, '商品上架'),
+        (5, '商品下架'),
+    )
+
+    handler = models.ForeignKey(Users, models.CASCADE, related_name='manipulator', verbose_name='处理人')
+    handler_name = models.CharField(max_length=32, verbose_name='处理人名称')
+    affected_id = models.IntegerField(verbose_name='受影响对象id')
+    type = models.SmallIntegerField(choices=((1, '用户积分日志'), (2, '商品上下架日志'), (3, '商品价格修改日志'), (4, '储值卡消费日志')), verbose_name='类型')
+    action = models.IntegerField(choices=ACTION_ENUM, verbose_name='action')
+    do = models.CharField(max_length=16, verbose_name='做了啥')
+    before = models.CharField(max_length=16, verbose_name='单据完成之前')
+    after = models.CharField(max_length=17, verbose_name='单据完成之后')
+
+    class Meta:
+        db_table = 'fruits_logs'
+        verbose_name = '操作日志'
         verbose_name_plural = verbose_name
