@@ -22,7 +22,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -35,7 +34,6 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-_ht@vhiv!6#%f-m@75@y2fc(g#
 DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -51,7 +49,8 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',
     'home.apps.HomeConfig',
     'areas.apps.AreasConfig',
-    'goods.apps.GoodsConfig'
+    'goods.apps.GoodsConfig',
+    'example.apps.ExampleConfig',
 ]
 
 MIDDLEWARE = [
@@ -59,7 +58,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',      # 否则引发报错：`Forbidden (CSRF cookie not set.)`
-    'apps.users.utils.JwtTokenBlackMiddleware',     # 主动失效的token拒绝访问
+    'apps.users.utils.JwtTokenBlackMiddleware',  # 主动失效的token拒绝访问
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -86,7 +85,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'laijinguozi.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -96,7 +94,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -116,7 +113,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -131,7 +127,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -157,7 +152,7 @@ REST_FRAMEWORK = {
 # JWT
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),  # 有效期
-    'JWT_AUTH_HEADER_PREFIX': 'JWT-TOKEN',    # jwt前缀，默认为JWT
+    'JWT_AUTH_HEADER_PREFIX': 'JWT-TOKEN',  # jwt前缀，默认为JWT
 }
 
 # SENTRY
@@ -188,4 +183,23 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+}
+
+# log
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+    }
 }
