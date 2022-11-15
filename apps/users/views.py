@@ -118,8 +118,8 @@ class UserInfoView(APIView):
         serializer_class = self.get_serializer_class()
         return serializer_class(instance)
 
-    def get(self, request, uid):
-        request.headers
+    def get(self, request, *args, **kwargs):
+        uid = request.query_params.get('id')
         instance = self.get_object(uid)
         serializer = self.get_serializer(instance)
         data = serializer.data

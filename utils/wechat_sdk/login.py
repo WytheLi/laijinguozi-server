@@ -43,7 +43,6 @@ class WechatLogin(WechatBase):
     def get_phone_number(self, code):
         """
             https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-info/phone-number/getPhoneNumber.html
-        :param access_token:
         :param code:
         :return: {
             "errcode":0,

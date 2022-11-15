@@ -72,3 +72,6 @@ jwt验证特性就是不用在服务端存储token，极大的节省了存储读
 
 - JWT 的 Token 过期时间为什么没有生效
 > https://blog.csdn.net/somenzz/article/details/120540453
+
+- Django ORM Cookbook中文版
+> https://django-orm-cookbook-zh-cn.readthedocs.io/zh_CN/latest/index.html
