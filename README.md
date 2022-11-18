@@ -47,6 +47,20 @@ for setting in dir(mod):
 jwt验证特性就是不用在服务端存储token，极大的节省了存储读写的开销。为每个用户存储一个独立的secret_key，相较于存储token读写的频率降低，但是存储的开销还是较大。
 
 
+### postman tests
+```
+console.log('tests running...');
+var jsonData = JSON.parse(responseBody);
+// console.log(pm.response);
+if (pm.response.code == 200 || pm.response.code == 201) {
+    pm.environment.set("token", 'JWT-TOKEN ' + jsonData.data.token);
+}
+```
+
+### django orm VS 
+1、实际的项目中Django和SQLAlchemy结合使用，Django用于所有常规的CRUD操作，而SQLAlchemy用于更复杂的查询，“业务规则”和限制条件较多的查询，如各类报表等只读查询。
+
+
 ### 参考文档
 - Sentry的安装配置集成以及简单的使用
 > https://www.jianshu.com/p/176ba74dcdc3
@@ -75,3 +89,7 @@ jwt验证特性就是不用在服务端存储token，极大的节省了存储读
 
 - Django ORM Cookbook中文版
 > https://django-orm-cookbook-zh-cn.readthedocs.io/zh_CN/latest/index.html
+
+
+- EverSQL查询优化器
+> https://www.eversql.com/

@@ -67,13 +67,7 @@ class WechatLogin(WechatBase):
         """
             https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/user-login/code2Session.html
         :param js_code:
-        :return: {
-            "openid":"123456",
-            "session_key":"xxxxx",
-            "unionid":"xxxxx",
-            "errcode":0,
-            "errmsg":"xxxxx"
-        }
+        :return: (200, b'{"session_key":"ZMOCBq3KUH+6C59ar8L3Lw==","openid":"oL24Y5fg8au3qHAp5bU7lD5WIwgI"}')
         """
         url = self.base_url + '/sns/jscode2session'
         params = dict()

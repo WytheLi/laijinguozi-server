@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 
@@ -24,11 +26,12 @@ class WechatLoginSerializer(serializers.Serializer):
     def create(self, validated_data):
         js_code = validated_data.pop('code')
 
-        result = wechat_login.code2session(js_code)
+        status_code, result = wechat_login.code2session(js_code)
 
-        if result.get('errcode') != 0:
+        if status_code != 200:
             raise serializers.ValidationError('微信获取openid失败')
 
+        result = json.loads(result)
         wechat_user = WechatUser.objects.filter(openid=result['openid']).first()
         if wechat_user and wechat_user.user:
             # 签发token
@@ -39,7 +42,8 @@ class WechatLoginSerializer(serializers.Serializer):
         if wechat_user and not wechat_user.user:
             validated_data['openid'] = result['openid']     # 严格来说是需要使用session_key加密openid，这里偷懒明文传输
         else:
-            WechatUser.objects.create(openid=result['openid'], session_key=result['session_key'])
+            wechat_user = WechatUser(openid=result['openid'], session_key=result['session_key'])
+            wechat_user.save()
             validated_data['openid'] = result['openid']
         self.context['view'].validated_data = validated_data
         return wechat_user

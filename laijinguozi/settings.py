@@ -203,3 +203,8 @@ LOGGING = {
         },
     }
 }
+
+
+# 设置django shell环境（默认为python shell），这里设置为ipython，支持自动补全、自动缩进等
+# pip install ipython -i https://pypi.douban.com/simple
+SHELL_PLUS = 'ipython'

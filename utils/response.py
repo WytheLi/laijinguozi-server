@@ -8,4 +8,4 @@ def success(data=None, msg='success.'):
 
 
 def fail(msg, code=500):
-    return Response({'code': code, msg: msg})
+    return Response({'code': code, 'msg': msg})

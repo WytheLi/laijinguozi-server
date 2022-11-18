@@ -47,7 +47,10 @@ class WechatLoginView(APIView):
         小程序登录流程：
             1、小程序获取code
             2、将code发送到开发者服务器
-            3、开发者服务器通过微信接口服务校验登录凭证
+            3、开发者服务器请求微信服务器获取openid、session_key
+                3.1、若数据库中存在该微信用户&绑定了手机号，签发token
+                3.2、若数据库中存在该微信用户，但是未绑定手机号，响应未注册信息，让用户请求注册接口绑定手机号
+                3.3、若数据库中不存在该微信用户，创建微信用户记录，响应未注册信息，让用户请求注册接口绑定手机号
         参考：
             - rest_framework.generics.CreateAPIView
             - rest_framework_jwt.views.JSONWebTokenAPIView
@@ -80,7 +83,7 @@ class WechatLoginView(APIView):
         if token:
             return success({'token': token})
         else:
-            return fail(**status_code.WX_LOGIN_ERROR)
+            return success(data={'openid': self.validated_data.get('openid')}, **status_code.WX_LOGIN_ERROR)
 
 
 class WechatRegisterView(GenericAPIView):

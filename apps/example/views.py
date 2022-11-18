@@ -1,8 +1,10 @@
 from django.shortcuts import render
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Person, Province, City
+from .models import Person, Province, City, Group
+from .serializers import GroupSerializers
 
 
 # Create your views here.
@@ -43,6 +45,21 @@ class PersonView(APIView):
 
         # 4.2、查询某个城市旅游过的人
         city = City.objects.get(pk=city_id)
-        city.visitor.all()  # 以Person为主表，关联Relation表，查询所有在city_id旅游过的人
+        persons1 = city.visitor.all()  # 以Person为主表，关联Relation表，查询所有在city_id旅游过的人
+
+        persons2 = City.objects.get(pk=city_id).visitor.all()        # 分步查询
+
+        persons3 = City.objects.prefetch_related('visitor').filter(pk=city_id).values('visitor__id', 'visitor__name')    # 关联查询
 
         return Response({'code': 200, 'msg': 'success.'})
+
+
+class GroupView(ListAPIView):
+
+    serializer_class = GroupSerializers
+    queryset = Group.objects.filter()
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        serializer.data
