@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'areas.apps.AreasConfig',
     'goods.apps.GoodsConfig',
     'example.apps.ExampleConfig',
+    'upload_file.apps.UploadFileConfig',
 ]
 
 MIDDLEWARE = [
@@ -176,9 +177,18 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+    # token黑名单
     "token_blacklist": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": f"redis://{redis_hostname}:{redis_port}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 有效的文件上传凭证
+    "valid_auth": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{redis_hostname}:{redis_port}/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

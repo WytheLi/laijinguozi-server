@@ -61,6 +61,37 @@ if (pm.response.code == 200 || pm.response.code == 201) {
 1、实际的项目中Django和SQLAlchemy结合使用，Django用于所有常规的CRUD操作，而SQLAlchemy用于更复杂的查询，“业务规则”和限制条件较多的查询，如各类报表等只读查询。
 
 
+### 文件服务
+使用`go-fastdfs`和`go-fastdfs-web`镜像
+- 部署go-fastdfs
+```
+docker pull sjqzhang/go-fastdfs
+
+docker run -d --name go-fastdfs -v /opt/go-fastdfs:/data -p 8085:8080 -e GO_FASTDFS_DIR=/data sjqzhang/go-fastdfs
+1.运行后查看本地映射中文件夹是否出现conf data files 等文件夹
+2.修改白名单，修改本地映射中文件夹conf/cfg.json 文件内容中的"admin_ips"字段 所有人可访问修改为“0.0.0.0”
+
+docker restart fastdfs
+测试是否正常：访问 http://本地ip:8080
+```
+
+- 部署go-fastdfs-web
+```
+docker pull perfree/fastdfsweb
+
+docker run --name go-fastdfs-web -d -p 8086:8088 perfree/fastdfsweb
+测试是否正常访问 http://本地ip:8088 
+
+配置go-fastdfs-web
+集群名称：随意填写
+组：对应本地映射中文件夹conf/cfg.json 文件内容中的group
+服务地址：http://本地ip:8080
+访问地址：http://本地ip:8080
+用户名密码邮箱。自己填写创建
+```
+> https://sjqzhang.github.io/go-fastdfs/install.html#docker
+
+
 ### 参考文档
 - Sentry的安装配置集成以及简单的使用
 > https://www.jianshu.com/p/176ba74dcdc3

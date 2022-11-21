@@ -137,8 +137,8 @@ class LogoutView(APIView):
         """
             登出，在redis里面添加token黑名单。实现jwt token主动失效
                 key: jwt-token
-                value: <失效时间>
                 expiry: <token有效期>
+                value: <失效时间>
         """
         authorization = request.headers.get('Authorization')
         token = authorization.split(' ')[1]
