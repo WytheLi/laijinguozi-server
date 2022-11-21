@@ -1,6 +1,7 @@
 import uuid
 
 from django.shortcuts import render
+from django.http import HttpResponse
 from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -16,12 +17,12 @@ class UploadAuthView(APIView):
         https://sjqzhang.github.io/go-fastdfs/authentication.html#custom
     """
     def post(self, request, *args, **kwargs):
-        code = request.data.get('code')
+        code = request.data.get('auth_token')
         redis_conn = get_redis_connection('valid_auth')
         if redis_conn.get(code):
-            return "ok"
+            return HttpResponse("ok")
         else:
-            return "fail"
+            return HttpResponse("fail")
 
 
 class AuthTokenView(APIView):
