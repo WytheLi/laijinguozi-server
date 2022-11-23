@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 
 from django.contrib.auth.models import AbstractUser
@@ -18,6 +19,7 @@ class Users(AbstractUser):
     is_employee = models.BooleanField(default=False, verbose_name="是否为内部员工")
     avatar = models.CharField(max_length=128, null=True, blank=True, verbose_name='头像')
     nickname = models.CharField(max_length=7, null=True, blank=True, verbose_name='昵称')
+    gender = models.BooleanField(null=True, blank=True, verbose_name='性别')
     total_points = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name='总积分')
 
     class Meta:
@@ -25,11 +27,43 @@ class Users(AbstractUser):
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 
+    @property
     def generate_username(self):
         """
-            默认用户名：fruits_<uuid>
+            生成默认用户名
+        :return:
         """
-        pass
+        return {str(uuid.uuid4()).replace('-', '')}
+
+    @property
+    def show_username(self):
+        """
+        Princesses and princes
+        :return:
+        """
+        if self.gender is True:
+            return f"princes_{self.username}"
+        if self.gender is False:
+            return f"princesses_{self.username}"
+        return self.username
+
+    @property
+    def duplicate_account(self):
+        """
+            username,mobile,email重复
+        :return:
+        """
+        all_user = Users.objects.all()
+        all_username = map(lambda user: user.username, all_user)
+        all_mobile = map(lambda user: user.mobile, all_user)
+        all_email = map(lambda user: user.email, all_user)
+        if self.username in all_username:
+            return True
+        if self.mobile in all_mobile:
+            return True
+        if self.email in all_email:
+            return True
+        return False
 
 
 class WechatUser(BaseModel):
