@@ -149,16 +149,16 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
     ),
     # 限流
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-        'utils.throttle.SmsRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '2/min',    # 匿名用户，每分钟请求超过20次会限流
-        'user': '10/min',    # 认证用户，每分钟请求超过60次会限流
-        'sms_code': '1/m',  # 短信验证码，每分钟请求超过1次会限流
-    },
+    # 'DEFAULT_THROTTLE_CLASSES': [
+    #     'rest_framework.throttling.AnonRateThrottle',
+    #     'rest_framework.throttling.UserRateThrottle',
+    #     'utils.throttle.SmsRateThrottle'
+    # ],
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'anon': '20/min',    # 匿名用户，每分钟请求超过20次会限流
+    #     'user': '60/min',    # 认证用户，每分钟请求超过60次会限流
+    #     'sms_code': '1/m',  # 短信验证码，每分钟请求超过1次会限流
+    # },
 }
 
 # JWT
@@ -197,7 +197,7 @@ CACHES = {
         }
     },
     # 有效的文件上传凭证
-    "valid_auth": {
+    "valid_code": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": f"redis://{redis_hostname}:{redis_port}/2",
         "OPTIONS": {

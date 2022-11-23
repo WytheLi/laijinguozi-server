@@ -10,3 +10,11 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True  # 说明是抽象模型类, 用于继承使用，数据库迁移时不会创建BaseModel的表
+
+    def __str__(self):
+        name = getattr(self, 'name')
+        if name:
+            return name
+        else:
+            super(BaseModel, self).__str__()
+            

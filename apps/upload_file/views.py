@@ -28,7 +28,7 @@ def upload_auth(request, *args, **kwargs):
     :return:
     """
     code = request.data.get('auth_token')
-    redis_conn = get_redis_connection('valid_auth')
+    redis_conn = get_redis_connection('valid_code')
     if redis_conn.get(code):
         redis_conn.delete(code)
         return HttpResponse("ok")
@@ -43,7 +43,7 @@ class AuthTokenView(APIView):
     def get(self, request, *args, **kwargs):
         code = str(uuid.uuid4()).replace('-', '')
 
-        redis_conn = get_redis_connection('valid_auth')
+        redis_conn = get_redis_connection('valid_code')
         redis_conn.setex(code, 60 * 30, request.user.id)
         return success({"code": code})
 

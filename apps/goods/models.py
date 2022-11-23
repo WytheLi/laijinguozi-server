@@ -12,18 +12,19 @@ class GoodsCategory(BaseModel):
         2、网红特卖
         3、葡提梅果
         4、柑橘橙柚
-        5、苹果焦梨
+        5、苹果蕉梨
         6、西瓜/蜜瓜
         7、干果/饮品
         8、现切/下午茶
         9、礼盒果篮
     """
     name = models.CharField(max_length=6, verbose_name='品类')
-    sequence = models.IntegerField(verbose_name='序号')
+    sequence = models.SmallIntegerField(unique=True, verbose_name='序号')
 
     class Meta:
         db_table = 'fruits_goods_category'
         verbose_name = '商品品类'
+        verbose_name_plural = verbose_name
 
 
 class Brand(BaseModel):
@@ -43,6 +44,15 @@ class GoodsUnit(BaseModel):
     class Meta:
         db_table = 'fruits_goods_unit'
         verbose_name = '单位'
+        verbose_name_plural = verbose_name
+
+
+class Store(BaseModel):
+    name = models.CharField(max_length=16, verbose_name='店名')
+
+    class Meta:
+        db_table = 'fruits_store'
+        verbose_name = '店铺'
         verbose_name_plural = verbose_name
 
 
@@ -79,6 +89,7 @@ class Goods(BaseModel):
     maximum_purchase = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最大购买数')
     minimum_purchase = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal('0.00'), verbose_name='最小购买数')
     state = models.SmallIntegerField(choices=((1, '已上架'), (2, '待审核'), (3, '已下架')), verbose_name='状态')
+    store = models.ForeignKey(Store, models.PROTECT, verbose_name='店铺')
 
     class Meta:
         db_table = 'fruits_goods'

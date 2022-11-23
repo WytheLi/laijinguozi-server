@@ -61,3 +61,27 @@ class PersonGroupRelation(models.Model):
         verbose_name = '用户与用户组关联表'
         verbose_name_plural = verbose_name
 
+
+class Student(models.Model):
+    name = models.CharField(max_length=16, verbose_name="学生姓名")
+
+    class Meta:
+        db_table = "example_student"
+        verbose_name = "学生"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return f"{self.name} <{self.id}>"
+
+
+class Subject(models.Model):
+    name = models.CharField(max_length=16, verbose_name="科目")
+    students = models.ManyToManyField(Student, related_name='subject_set')
+
+    class Meta:
+        db_table = "example_subject"
+        verbose_name = "科目"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return f"{self.name} <{self.id}>"
