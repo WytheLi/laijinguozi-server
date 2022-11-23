@@ -59,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',      # 否则引发报错：`Forbidden (CSRF cookie not set.)`
-    'apps.users.utils.JwtTokenBlackMiddleware',  # 主动失效的token拒绝访问
+    'utils.middlewares.JwtTokenBlackMiddleware',  # 主动失效的token拒绝访问
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -173,8 +173,8 @@ SENTRY_DSN = os.getenv('SENTRY_DSN')
 # 自定义用户类
 AUTH_USER_MODEL = 'users.Users'
 
-# 自定义
-AUTHENTICATION_BACKENDS = ['apps.users.utils.AuthBackend']
+# 自定义登陆校验类
+AUTHENTICATION_BACKENDS = ['utils.authenticated.AuthenticatedBackend']
 
 # redis cache
 redis_hostname = os.getenv('REDIS_HOSTNAME', '127.0.0.1')
