@@ -69,6 +69,7 @@ class Material(BaseModel):
     origin = models.CharField(max_length=8, verbose_name='产地')
     images = models.TextField(verbose_name='图片')  # 主图.jpg,副图1.jpg,副图2.jpg
     description = models.TextField(verbose_name='商品描述')
+    is_delete = models.BooleanField(default=False, verbose_name='是否删除')
 
     class Meta:
         db_table = 'fruits_material'

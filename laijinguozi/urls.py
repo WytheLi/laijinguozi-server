@@ -18,6 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('file_service/', include('upload_file.urls')),
+    path('', include('goods.urls')),
     path('', include('example.urls')),
     path('users/', include('users.urls')),
     path('home/', include('home.urls')),
