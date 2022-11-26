@@ -64,8 +64,12 @@ class Material(BaseModel):
     name = models.CharField(max_length=16, verbose_name='商品名称')
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, verbose_name='品牌')
     category = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='goods_category', verbose_name='类别')
-    unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='goods_unit', verbose_name='单位')
-    spec = models.CharField(max_length=8, verbose_name='规格')
+    purchase_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='purchase_unit', verbose_name='采购单位，例：按箱售卖，按件售卖')
+    sale_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='sale_unit', verbose_name='销售单位')
+    mini_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='mini_unit', null=True, blank=True, verbose_name='最小单位，例：一袋饺子里有20个，`袋`为销售单位，`个`为最小单位')
+    sale_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, verbose_name='销售单位换算比例，例：1箱=20包')
+    mini_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最小单位换算比例，例：1包=30串')
+    spec = models.CharField(max_length=16, verbose_name='规格')
     origin = models.CharField(max_length=8, verbose_name='产地')
     images = models.TextField(verbose_name='图片')  # 主图.jpg,副图1.jpg,副图2.jpg
     description = models.TextField(verbose_name='商品描述')
@@ -84,6 +88,7 @@ class Goods(BaseModel):
     material = models.ForeignKey(Material, models.PROTECT, related_name='material', verbose_name='物料')
     original_price = models.DecimalField(max_digits=6, decimal_places=2, verbose_name='原价')
     discount_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='特价')
+    unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='goods_unit', verbose_name='单位')
     k = models.SmallIntegerField(default=1, verbose_name='积分系数')     # 会员日3倍积分，周末2倍积分，100积分抵扣一元
     sales_volume = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name='销量')
     comments = models.IntegerField(default=0, verbose_name='评论数量')
