@@ -14,6 +14,9 @@ class Users(AbstractUser):
             - 顾客
             - 内部员工
         ps: 通过权限判断是否能登录小程序、App、Web端
+
+        self.set_password()     # 密码加密
+        self.check_password()   # 校验密码
     """
     mobile = models.CharField(max_length=11, unique=True, verbose_name='手机号')
     is_employee = models.BooleanField(default=False, verbose_name="是否为内部员工")

@@ -60,7 +60,7 @@ class Material(BaseModel):
     """
         物料，商品的基本信息
     """
-    code = models.CharField(max_length=32, verbose_name='商品编码')
+    code = models.CharField(max_length=32, unique=True, verbose_name='商品编码')
     name = models.CharField(max_length=16, verbose_name='商品名称')
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, verbose_name='品牌')
     category = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='goods_category', verbose_name='类别')
@@ -80,6 +80,28 @@ class Material(BaseModel):
         verbose_name = '物料'
         verbose_name_plural = verbose_name
 
+    @property
+    def spec_text(self):
+        """
+            根据单位以及换算比例计算规格
+        :return:
+        """
+        # 为了显示友好，换算比例为整数时浮点数转化为整数
+        if self.sale_unit_weight is not None and int(self.sale_unit_weight) == self.sale_unit_weight:
+            sale_unit_weight = int(self.sale_unit_weight)
+        else:
+            sale_unit_weight = self.sale_unit_weight
+
+        if self.mini_unit_weight is not None and int(self.mini_unit_weight) == self.mini_unit_weight:
+            mini_unit_weight = int(self.mini_unit_weight)
+        else:
+            mini_unit_weight = self.mini_unit_weight
+
+        return f'1{self.purchase_unit.name}' \
+               f'*{sale_unit_weight}{self.sale_unit.name}' \
+               f'*{mini_unit_weight}{self.mini_unit.name}' \
+                if mini_unit_weight else f'1{self.purchase_unit.name}*{sale_unit_weight}{self.sale_unit.name}'
+
 
 class Goods(BaseModel):
     """
@@ -94,8 +116,9 @@ class Goods(BaseModel):
     comments = models.IntegerField(default=0, verbose_name='评论数量')
     maximum_purchase = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最大购买数')
     minimum_purchase = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal('0.00'), verbose_name='最小购买数')
-    state = models.SmallIntegerField(choices=((1, '已上架'), (2, '待审核'), (3, '已下架')), verbose_name='状态')
+    state = models.SmallIntegerField(choices=((1, '已上架'), (2, '待审核'), (3, '已下架')), default=2, verbose_name='状态')
     store = models.ForeignKey(Store, models.PROTECT, verbose_name='店铺')
+    is_delete = models.BooleanField(default=False, verbose_name='是否删除')
 
     class Meta:
         db_table = 'fruits_goods'

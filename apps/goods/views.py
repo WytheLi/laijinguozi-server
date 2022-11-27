@@ -1,19 +1,20 @@
 from django.shortcuts import render
 
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import DjangoModelPermissions
 
 from utils.response import success
-from .models import Material
-from .serializers import MaterialSerializers
+from .models import Material, Goods
+from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCreateGoodsSerializer
+
 
 # Create your views here.
 
 
 class MaterialViewSet(viewsets.GenericViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (DjangoModelPermissions,)
 
-    serializer_class = MaterialSerializers
+    serializer_class = MaterialSerializer
 
     queryset = Material.objects.filter(is_delete=False)
 
@@ -32,7 +33,7 @@ class MaterialViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        return success(serializer.data)
+        return success()
 
     def create(self, request, *args, **kwargs):
         """
@@ -46,7 +47,7 @@ class MaterialViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return success(serializer.data)
+        return success()
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -91,7 +92,7 @@ class MaterialViewSet(viewsets.GenericViewSet):
         """
         instance = self.get_object()
         self.perform_destroy(instance)
-        return success({})
+        return success()
 
     def perform_destroy(self, instance):
         instance.is_delete = True
@@ -102,3 +103,59 @@ class MaterialViewSet(viewsets.GenericViewSet):
 
     def perform_update(self, serializer):
         serializer.save()
+
+
+class GoodsViewSet(viewsets.GenericViewSet):
+    permission_classes = (DjangoModelPermissions,)
+
+    queryset = Goods.objects.filter(is_delete=False)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return success(data=serializer.data)
+
+    def get_serializer_class(self):
+        material = self.request.data.get('material')
+        if isinstance(material, int):
+            return CheckedMaterialCreateGoodsSerializer
+        else:
+            return GoodsSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+            创建商品
+                {
+                    "material": {
+                        "code": "168172",
+                        "name": "富士苹果",
+                        "brand": 1,
+                        "category": 1,
+                        "origin": "中国山东",
+                        "images": "http://123.com",
+                        "description": "清甜爽口",
+                        "purchase_unit": 2,
+                        "sale_unit": 1,
+                        "sale_unit_weight": 10
+                    },
+                    "original_price": 18,
+                    "discount_price": 16,
+                    "unit": 1,
+                    "k": 3,
+                    "store": 1
+                }
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success()
