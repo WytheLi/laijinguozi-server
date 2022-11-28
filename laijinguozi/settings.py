@@ -159,6 +159,8 @@ REST_FRAMEWORK = {
     #     'user': '60/min',    # 认证用户，每分钟请求超过60次会限流
     #     'sms_code': '1/m',  # 短信验证码，每分钟请求超过1次会限流
     # },
+    # 自定义分页器
+    'DEFAULT_PAGINATION_CLASS': 'utils.pagination.PagePagination',
 }
 
 # JWT

@@ -14,7 +14,6 @@ class BaseModel(models.Model):
     def __str__(self):
         name = getattr(self, 'name')
         if name:
-            return name
+            return '%s: (%s, %s)' % (self.__class__.__name__, self.pk, name)
         else:
-            super(BaseModel, self).__str__()
-            
+            return '%s: (%s)' % (self.__class__.__name__, self.pk)
