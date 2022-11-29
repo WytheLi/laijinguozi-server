@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'goods.apps.GoodsConfig',
     'example.apps.ExampleConfig',
     'upload_file.apps.UploadFileConfig',
+    'carts.apps.CartsConfig',
 ]
 
 MIDDLEWARE = [
@@ -203,6 +204,14 @@ CACHES = {
     "valid_code": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": f"redis://{redis_hostname}:{redis_port}/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    # 购物车
+    "cart": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{redis_hostname}:{redis_port}/3",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

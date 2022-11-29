@@ -12,8 +12,7 @@ class BaseModel(models.Model):
         abstract = True  # 说明是抽象模型类, 用于继承使用，数据库迁移时不会创建BaseModel的表
 
     def __str__(self):
-        name = getattr(self, 'name')
-        if name:
-            return '%s: (%s, %s)' % (self.__class__.__name__, self.pk, name)
+        if hasattr(self, 'name'):
+            return '%s: (%s, %s)' % (self.__class__.__name__, self.pk, self.name)
         else:
             return '%s: (%s)' % (self.__class__.__name__, self.pk)

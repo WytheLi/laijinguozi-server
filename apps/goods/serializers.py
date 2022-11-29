@@ -67,26 +67,27 @@ class GoodsSerializer(serializers.ModelSerializer):
             return instance.sales_volume
 
     def create(self, validated_data):
-        # 开启一个事务
-        with transaction.atomic():
-            # django.db.transaction.TransactionManagementError: An error occurred in the current transaction.
-            # You can't execute queries until the end of the 'atomic' block.
-            # 在事务中，不能执行查询语句
-            save_id = transaction.savepoint()
-            try:
+        try:
+            # 开启一个事务
+            with transaction.atomic():
+                # django.db.transaction.TransactionManagementError: An error occurred in the current transaction.
+                # You can't execute queries until the end of the 'atomic' block.
+                # 在事务中，不能执行查询语句
+                save_id = transaction.savepoint()
+
                 material = Material(**validated_data['material'])
                 material.spec = material.spec_text
                 material.save()
 
                 validated_data['material'] = material
                 goods = Goods.objects.create(**validated_data)
-            except serializers.ValidationError as e:
-                raise e
-            except Exception as e:
-                transaction.savepoint_rollback(save_id)
-                raise e
-            else:
-                transaction.savepoint_commit(save_id)
+        except serializers.ValidationError as e:
+            raise e
+        except Exception as e:
+            transaction.savepoint_rollback(save_id)
+            raise e
+        else:
+            transaction.savepoint_commit(save_id)
         return goods
 
 
