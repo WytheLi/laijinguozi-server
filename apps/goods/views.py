@@ -1,8 +1,11 @@
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import viewsets
 from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.filters import OrderingFilter, SearchFilter
 
+from utils.filter_backend import MaterialFilter
 from utils.response import success
 from .models import Material, Goods
 from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCreateGoodsSerializer
@@ -17,6 +20,11 @@ class MaterialViewSet(viewsets.GenericViewSet):
     serializer_class = MaterialSerializer
 
     queryset = Material.objects.filter(is_delete=False)
+
+    # 排序、过滤
+    filter_backends = [OrderingFilter, MaterialFilter]
+    ordering_fields = ["id"]
+    search_fields = ['name', 'code', 'brand__name']
 
     def partial_update(self, request, *args, **kwargs):
         """
@@ -109,6 +117,20 @@ class GoodsViewSet(viewsets.GenericViewSet):
     permission_classes = (DjangoModelPermissions,)
 
     queryset = Goods.objects.filter(is_delete=False)
+
+    # 排序，rest_framework.filters.OrderingFilter
+    # 过滤（内置过滤类），rest_framework.filters.SearchFilter
+    # 第三方过滤类，django_filters.rest_framework.DjangoFilterBackend
+    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    # 配置排序字段 /goods?ordering=-update_time
+    ordering_fields = ['update_time', 'sales_volume', 'comments', 'material__name']
+    # 配置过滤字段
+    # 内置过滤，必须用search查询参数，支持模糊查询。/goods?search=猫山王
+    search_fields = ['material__name', 'material__code', 'material__brand__name']
+
+    # django_filters过滤。可以指定某个字段过滤，可以and多条件查询，但是不支持模糊查询。有点鸡肋，通常需要自定义重写。/goods?material__brand__name=猫山王&state=1
+    # ps：旧版本为filter_fields字段，新版改为filterset_fields
+    filterset_fields = ['state']
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

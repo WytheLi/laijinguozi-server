@@ -29,4 +29,5 @@ class UserInfoAdmin(UserAdmin):
     ]
 
 
+# TODO admin后台创建、编辑用户未对账户去重，存在隐患。
 admin.site.register(Users, UserInfoAdmin)

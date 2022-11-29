@@ -52,7 +52,7 @@ class GoodsSerializer(serializers.ModelSerializer):
     material = MaterialSerializer()
     sales_volume = serializers.SerializerMethodField(read_only=True)
     comments = serializers.IntegerField(read_only=True)
-    state = serializers.BooleanField(read_only=True)
+    state = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Goods
