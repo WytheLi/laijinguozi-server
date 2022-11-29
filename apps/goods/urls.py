@@ -12,4 +12,10 @@ urlpatterns = [
     # 上架商品（勾选物料创建，自定义创建）
     path('goods/create', views.GoodsViewSet.as_view({'post': 'create'})),
     path('goods', views.GoodsViewSet.as_view({'get': 'list'})),
+    path('goods/up_down/update/<int:pk>', views.GoodsViewSet.as_view({'patch': 'up_down'})),
+
+    # 增加库存
+    path('stock/add', views.StockViewSet.as_view({'post': 'create_or_update'})),
+    # 库存流水
+
 ]

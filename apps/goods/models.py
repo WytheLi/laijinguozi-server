@@ -116,7 +116,7 @@ class Goods(BaseModel):
     comments = models.IntegerField(default=0, verbose_name='评论数量')
     maximum_purchase = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最大购买数')
     minimum_purchase = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal('0.00'), verbose_name='最小购买数')
-    state = models.SmallIntegerField(choices=((1, '已上架'), (2, '待审核'), (3, '已下架')), default=2, verbose_name='状态')
+    state = models.SmallIntegerField(choices=((1, '已上架（售卖中）'), (2, '待审核'), (3, '待上架'), (4, '已下架')), default=2, verbose_name='状态')
     store = models.ForeignKey(Store, models.PROTECT, verbose_name='店铺')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
 
@@ -127,7 +127,7 @@ class Goods(BaseModel):
 
 
 class Stock(BaseModel):
-    goods = models.ForeignKey(Goods, models.CASCADE, verbose_name='商品')
+    goods = models.ForeignKey(Goods, models.CASCADE, unique=True, verbose_name='商品')
     stock = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='可用库存')
     lock_stock = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='占用库存')
 

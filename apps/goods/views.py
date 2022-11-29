@@ -7,8 +7,9 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 from utils.filter_backend import MaterialFilter
 from utils.response import success
-from .models import Material, Goods
-from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCreateGoodsSerializer
+from .models import Material, Goods, Stock
+from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCreateGoodsSerializer, \
+    AddStockSerializer
 
 
 # Create your views here.
@@ -180,4 +181,62 @@ class GoodsViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return success()
+
+    def up_down(self):
+        """
+            商品上下架
+
+            上架：
+                1、状态必须为`待上架`或`已下架`
+                2、库存一定要大于0
+            下架：
+                状态必须为`已上架（售卖中）`
+        :return:
+        """
+        pass
+
+
+class StockViewSet(viewsets.GenericViewSet):
+    """
+        库存管理
+    """
+    permission_classes = (DjangoModelPermissions,)
+
+    serializer_class = AddStockSerializer
+
+    queryset = Stock.objects
+
+    def get_object(self):
+        goods_id = self.request.data.get('goods_id')
+        stock = Stock.objects.get(goods__id=goods_id)
+        return stock
+
+    def create_or_update(self, request, *args, **kwargs):
+        """
+            增加库存
+                1、有该商品的库存记录，增加库存数量
+                2、无该商品的库存记录，新增记录
+            请求参数：
+            {
+                "goods_id": 1,
+                "stock": 10
+            }
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # AttributeError: This QueryDict instance is immutable
+        # QueryDict 实例不可修改，固`request.data['goods'] = request.data.pop('goods_id', None)`报错！
+        request_body = request.data.copy()
+        request_body['goods'] = request_body.pop('goods_id', None)
+        serializer = self.get_serializer(data=request_body)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            stock = self.get_object()
+            serializer = self.get_serializer(stock, data=request_body, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
         return success()

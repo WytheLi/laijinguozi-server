@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import Material, Goods
+from .models import Material, Goods, Stock
 
 
 class MaterialSerializer(serializers.ModelSerializer):
@@ -96,3 +96,37 @@ class CheckedMaterialCreateGoodsSerializer(serializers.ModelSerializer):
         model = Goods
         fields = ('material', 'original_price', 'discount_price', 'unit', 'k',
                   'maximum_purchase', 'minimum_purchase', 'store')
+
+
+class AddStockSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Stock
+        fields = ('goods', 'stock')
+
+    def update(self, instance, validated_data):
+        goods = validated_data.get('goods')
+        stock = validated_data.get('stock')
+        origin_stock = instance.stock   # 修改前库存。ps:注意这是查询操作不能写在事务块内
+        final_stock = origin_stock + stock  # 修改后库存
+        try:
+            with transaction.atomic():
+                instance = Stock.objects.filter(goods=goods, stock=origin_stock).select_for_update()
+                instance.update(stock=final_stock)
+        except Exception as e:
+            transaction.rollback()
+            raise e
+        else:
+            transaction.commit()
+        return instance
+
+    def create(self, validated_data):
+        try:
+            with transaction.atomic():
+                stock = Stock.objects.select_for_update().create(**validated_data)
+        except Exception as e:
+            transaction.rollback()
+            raise e
+        else:
+            transaction.commit()
+        return stock
