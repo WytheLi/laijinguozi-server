@@ -241,7 +241,7 @@ LOGGING = {
         'default': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(os.getenv('LOG_PATH', './logs'), '{}.log'.format(time.strftime('%Y-%m-%d'))),
+            'filename': os.path.join(os.getenv('LOG_PATH', os.path.join(BASE_DIR, 'logs')), '{}.log'.format(time.strftime('%Y-%m-%d'))),
             'maxBytes': 1024 * 1024 * 5,  # 文件大小
             'backupCount': 5,  # 备份数
             'formatter': 'standard',  # 输出格式

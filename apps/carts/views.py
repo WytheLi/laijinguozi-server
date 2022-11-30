@@ -26,6 +26,9 @@ class CartViewSet(viewsets.GenericViewSet):
         else:  # GET
             return CartGoodsSerializer
 
+    def get_object(self):
+        return Goods.objects.filter(pk__in=self.goods_ids, is_delete=False, state=constants.GoodsState.ON_SALE.value)
+
     def create(self, request, *args, **kwargs):
         """
             加购
@@ -60,11 +63,16 @@ class CartViewSet(viewsets.GenericViewSet):
         user_cart = redis_conn.hgetall('cart_%s' % user.id)
 
         goods_ids = map(lambda key: key.split(":")[0], user_cart.keys())
+        self.goods_ids = goods_ids
 
-        goods_list = Goods.objects.filter(pk__in=goods_ids, is_delete=False, state=constants.GoodsState.ON_SALE.value)
-
-        serializer = self.get_serializer(goods_list, many=True)
-        records = serializer.data
+        queryset = self.get_object()
+        page = self.paginate_queryset(queryset)
+        if page:
+            serializer = self.get_serializer(queryset, many=True)
+            records = self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            records = serializer.data
 
         carts = dict()
         for key, value in user_cart.items():
