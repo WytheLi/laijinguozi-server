@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.filters import OrderingFilter, SearchFilter
 
+from utils import constants
 from utils.filter_backend import MaterialFilter
 from utils.response import success
 from .models import Material, Goods, Stock
@@ -117,7 +118,7 @@ class MaterialViewSet(viewsets.GenericViewSet):
 class GoodsViewSet(viewsets.GenericViewSet):
     permission_classes = (DjangoModelPermissions,)
 
-    queryset = Goods.objects.filter(is_delete=False)
+    queryset = Goods.objects.filter(is_delete=False, state=constants.GoodsState.ON_SALE.value)
 
     # 排序，rest_framework.filters.OrderingFilter
     # 过滤（内置过滤类），rest_framework.filters.SearchFilter

@@ -9,7 +9,7 @@ urlpatterns = [
     path('material/get/<int:pk>', views.MaterialViewSet.as_view({'get': 'retrieve'})),
     path('material/delete/<int:pk>', views.MaterialViewSet.as_view({'delete': 'destory'})),
 
-    # 上架商品（勾选物料创建，自定义创建）
+    # 创建商品（勾选物料创建，自定义创建）
     path('goods/create', views.GoodsViewSet.as_view({'post': 'create'})),
     path('goods', views.GoodsViewSet.as_view({'get': 'list'})),
     path('goods/up_down/update/<int:pk>', views.GoodsViewSet.as_view({'patch': 'up_down'})),

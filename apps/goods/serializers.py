@@ -22,11 +22,11 @@ class MaterialSerializer(serializers.ModelSerializer):
 
         # 规格改变，更新规格
         purchase_unit = validated_data.get('purchase_unit')
-        sale_unit = validated_data.get('sale_unit')
+        retail_unit = validated_data.get('retail_unit')
         mini_unit = validated_data.get('mini_unit')
-        sale_unit_weight = validated_data.get('sale_unit_weight')
+        retail_unit_weight = validated_data.get('sale_unit_weight')
         mini_unit_weight = validated_data.get('mini_unit_weight')
-        if any([purchase_unit, sale_unit, mini_unit, sale_unit_weight, mini_unit_weight]):
+        if any([purchase_unit, retail_unit, mini_unit, retail_unit_weight, mini_unit_weight]):
             instance.spec = instance.spec_text
 
         instance.save()
@@ -41,9 +41,9 @@ class MaterialSerializer(serializers.ModelSerializer):
             'brand': {'write_only': True},
             'category': {'write_only': True},
             'purchase_unit': {'write_only': True},
-            'sale_unit': {'write_only': True},
+            'retail_unit': {'write_only': True},
             'mini_unit': {'write_only': True},
-            'sale_unit_weight': {'write_only': True},
+            'retail_unit_weight': {'write_only': True},
             'mini_unit_weight': {'write_only': True}
         }
 
@@ -53,12 +53,15 @@ class GoodsSerializer(serializers.ModelSerializer):
     sales_volume = serializers.SerializerMethodField(read_only=True)
     comments = serializers.IntegerField(read_only=True)
     state = serializers.IntegerField(read_only=True)
+    has_stock = serializers.BooleanField(read_only=True)
+    has_stock_retail = serializers.BooleanField(read_only=True)
+    latest_shelf_time = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Goods
-        fields = ('material', 'original_price', 'discount_price', 'unit', 'k',
-                  'maximum_purchase', 'minimum_purchase', 'store',
-                  'sales_volume', 'comments', 'state')
+        fields = ('material', 'whole_piece_price', 'retail_price', 'whole_piece_discount_price', 'retail_discount_price',
+                  'enable_whole_piece', 'enable_retail', 'whole_piece_launched_num', 'retail_launched_num', 'k', 'store',
+                  'sales_volume', 'comments', 'state', 'has_stock', 'has_stock_retail', 'latest_shelf_time')
 
     def get_sales_volume(self, instance):
         if instance.sales_volume is not None and int(instance.sales_volume) == instance.sales_volume:
@@ -95,8 +98,8 @@ class CheckedMaterialCreateGoodsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Goods
-        fields = ('material', 'original_price', 'discount_price', 'unit', 'k',
-                  'maximum_purchase', 'minimum_purchase', 'store')
+        fields = ('material', 'whole_piece_price', 'retail_price', 'whole_piece_discount_price', 'retail_discount_price',
+                  'enable_whole_piece', 'enable_retail', 'whole_piece_launched_num', 'retail_launched_num', 'k', 'store')
 
 
 class AddStockSerializer(serializers.ModelSerializer):

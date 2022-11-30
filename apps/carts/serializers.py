@@ -1,7 +1,7 @@
 from django_redis import get_redis_connection
 from rest_framework import serializers
 
-from goods.models import Goods
+from goods.models import Goods, Material
 
 
 class CartSerializer(serializers.Serializer):
@@ -37,3 +37,22 @@ class CartSerializer(serializers.Serializer):
         # 购物车数据结构，cart_<user_id> = {"goods_id:unit_id": count, }
         redis_conn.hincrbyfloat('cart_%s' % user.id, '%s:%s' % (goods_id, unit_id), float(count))
         return True
+
+
+class CartGoodsMaterialSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Material
+        fields = ('code', 'name', 'brand', 'purchase_unit', 'retail_unit', 'spec')
+
+
+class CartGoodsSerializer(serializers.ModelSerializer):
+    """
+        购物车商品列表序列化器
+    """
+    material = CartGoodsMaterialSerializer()
+
+    class Meta:
+        model = Goods
+        fields = ('material', 'whole_piece_price', 'retail_price', 'whole_piece_discount_price', 'retail_discount_price',
+                  'enable_whole_piece', 'enable_retail', 'has_stock', 'has_stock_retail', 'id')

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import datetime
 import os
 import sys
+import time
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 
@@ -221,22 +222,48 @@ CACHES = {
 # log
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': False,  # 是否禁用已经存在的logger实例，默认True，禁用
+    'formatters': {
+        # 日志格式
+        'standard': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
+        },
+        'simple': {  # 简单格式
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    # 过滤
+    'filters': {
+    },
+    # 定义具体处理日志的方式
     'handlers': {
+        # 默认记录所有日志
+        'default': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(os.getenv('LOG_PATH', './logs'), '{}.log'.format(time.strftime('%Y-%m-%d'))),
+            'maxBytes': 1024 * 1024 * 5,  # 文件大小
+            'backupCount': 5,  # 备份数
+            'formatter': 'standard',  # 输出格式
+            'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
+        },
+        # 控制台输出
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'standard'
         },
     },
+    # 配置用哪几种 handlers 来处理日志
     'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'DEBUG',
+        # 类型 为 django 处理所有类型的日志， 默认调用
+        'django': {
+            'handlers': ['default', 'console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': True  # 日志是否向上级传递。True 向上级传，False 不向上级传。默认为True。
         },
     }
 }
-
 
 # 设置django shell环境（默认为python shell），这里设置为ipython，支持自动补全、自动缩进等
 # pip install ipython -i https://pypi.douban.com/simple

@@ -3,8 +3,11 @@ from django_redis import get_redis_connection
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from goods.models import Goods
+from utils import constants
 from utils.response import success
-from .serializers import CartSerializer
+from .serializers import CartSerializer, CartGoodsSerializer
+
 
 # Create your views here.
 
@@ -15,7 +18,13 @@ class CartViewSet(viewsets.GenericViewSet):
     """
     permission_classes = (IsAuthenticated,)
 
-    serializer_class = CartSerializer
+    # serializer_class = CartSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CartSerializer
+        else:  # GET
+            return CartGoodsSerializer
 
     def create(self, request, *args, **kwargs):
         """
@@ -52,13 +61,17 @@ class CartViewSet(viewsets.GenericViewSet):
 
         goods_ids = map(lambda key: key.split(":")[0], user_cart.keys())
 
-        Goods.objects.filter(pk__in=goods_ids)
+        goods_list = Goods.objects.filter(pk__in=goods_ids, is_delete=False, state=constants.GoodsState.ON_SALE.value)
 
+        serializer = self.get_serializer(goods_list, many=True)
+        records = serializer.data
+
+        carts = dict()
         for key, value in user_cart.items():
             goods_id, unit_id = key.split(":")
-            count = value
+            carts[goods_id] = {"checked_unit": unit_id, "count": value}
 
+        for record in records:
+            record.update(carts.get(record.id))
 
-
-
-
+        return success(records)

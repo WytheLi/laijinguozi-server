@@ -29,7 +29,7 @@ class GoodsCategory(BaseModel):
 
 class Brand(BaseModel):
     name = models.CharField(max_length=20, verbose_name='名称')
-    logo = models.TextField(verbose_name='Logo图片')
+    logo = models.TextField(null=True, blank=True, verbose_name='Logo图片')
     first_letter = models.CharField(max_length=1, verbose_name='品牌首字母')
 
     class Meta:
@@ -49,6 +49,7 @@ class GoodsUnit(BaseModel):
 
 class Store(BaseModel):
     name = models.CharField(max_length=16, verbose_name='店名')
+    is_enable = models.BooleanField(default=True, verbose_name="启用")
 
     class Meta:
         db_table = 'fruits_store'
@@ -64,10 +65,10 @@ class Material(BaseModel):
     name = models.CharField(max_length=16, verbose_name='商品名称')
     brand = models.ForeignKey(Brand, on_delete=models.PROTECT, verbose_name='品牌')
     category = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='goods_category', verbose_name='类别')
-    purchase_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='purchase_unit', verbose_name='采购单位，例：按箱售卖，按件售卖')
-    sale_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='sale_unit', verbose_name='销售单位')
+    purchase_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='purchase_unit', verbose_name='采购单位，例：整件售卖')
+    retail_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='retail_unit', verbose_name='零售单位')
     mini_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='mini_unit', null=True, blank=True, verbose_name='最小单位，例：一袋饺子里有20个，`袋`为销售单位，`个`为最小单位')
-    sale_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, verbose_name='销售单位换算比例，例：1箱=20包')
+    retail_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, verbose_name='销售单位换算比例，例：1箱=20包')
     mini_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最小单位换算比例，例：1包=30串')
     spec = models.CharField(max_length=16, verbose_name='规格')
     origin = models.CharField(max_length=8, verbose_name='产地')
@@ -107,18 +108,38 @@ class Goods(BaseModel):
     """
         上架到某个门店销售的商品
     """
+    STATE_CHOICES = (
+        (1, '已上架（售卖中）'),
+        (2, '待审核'),
+        (3, '不通过'),
+        (4, '审核通过'),
+        (5, '已下架'),
+        (6, '草稿')
+    )
+
     material = models.ForeignKey(Material, models.PROTECT, related_name='material', verbose_name='物料')
-    original_price = models.DecimalField(max_digits=6, decimal_places=2, verbose_name='原价')
-    discount_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, verbose_name='特价')
-    unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='goods_unit', verbose_name='单位')
+
+    whole_piece_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件价格')
+    retail_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售价格')
+    whole_piece_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件售卖折后价')
+    retail_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售售卖折后价')
+    enable_whole_piece = models.BooleanField(default=False, verbose_name='整件售卖')
+    enable_retail = models.BooleanField(default=False, verbose_name='零售售卖')
+
+    whole_piece_launched_num = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件起售数量')
+    retail_launched_num = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售起售数量')
+
+    has_stock = models.BooleanField(default=False, verbose_name='整件售卖有库存')
+    has_stock_retail = models.BooleanField(default=False, verbose_name='零售有库存')
+
     k = models.SmallIntegerField(default=1, verbose_name='积分系数')     # 会员日3倍积分，周末2倍积分，100积分抵扣一元
     sales_volume = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name='销量')
     comments = models.IntegerField(default=0, verbose_name='评论数量')
-    maximum_purchase = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最大购买数')
-    minimum_purchase = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal('0.00'), verbose_name='最小购买数')
-    state = models.SmallIntegerField(choices=((1, '已上架（售卖中）'), (2, '待审核'), (3, '待上架'), (4, '已下架')), default=2, verbose_name='状态')
+
+    state = models.SmallIntegerField(choices=STATE_CHOICES, default=2, verbose_name='状态')
     store = models.ForeignKey(Store, models.PROTECT, verbose_name='店铺')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
+    latest_shelf_time = models.DateTimeField(null=True, blank=True, verbose_name='最近上架时间')
 
     class Meta:
         db_table = 'fruits_goods'
