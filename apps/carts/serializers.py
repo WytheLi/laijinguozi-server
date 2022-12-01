@@ -34,8 +34,8 @@ class CartSerializer(serializers.Serializer):
         user = self.context['view'].request.user
 
         redis_conn = get_redis_connection('cart')
-        # 购物车数据结构，cart_<user_id> = {"goods_id:unit_id": count, }
-        redis_conn.hincrbyfloat('cart_%s' % user.id, '%s:%s' % (goods_id, unit_id), float(count))
+        # 购物车数据结构，cart_user<user_id> = {"goods_id:unit_id": count, }
+        redis_conn.hincrbyfloat('cart_user:%s' % user.id, '%s:%s' % (goods_id, unit_id), float(count))
         return True
 
 

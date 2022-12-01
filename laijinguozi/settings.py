@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'example.apps.ExampleConfig',
     'upload_file.apps.UploadFileConfig',
     'carts.apps.CartsConfig',
+    'sales.apps.SalesConfig',
 ]
 
 MIDDLEWARE = [

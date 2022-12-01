@@ -60,26 +60,36 @@ class CartViewSet(viewsets.GenericViewSet):
         user = request.user
 
         redis_conn = get_redis_connection('cart')
-        user_cart = redis_conn.hgetall('cart_%s' % user.id)
+        user_cart = redis_conn.hgetall('cart_user:%s' % user.id)
 
-        goods_ids = map(lambda key: key.split(":")[0], user_cart.keys())
+        goods_ids = map(lambda key: key.decode().split(":")[0], user_cart.keys())
         self.goods_ids = goods_ids
 
         queryset = self.get_object()
         page = self.paginate_queryset(queryset)
         if page:
             serializer = self.get_serializer(queryset, many=True)
-            records = self.get_paginated_response(serializer.data)
+
+            records = self.construct_data(serializer.data, user_cart)
+            return self.get_paginated_response(records)
         else:
             serializer = self.get_serializer(queryset, many=True)
-            records = serializer.data
+            records = self.construct_data(serializer.data, user_cart)
 
+        return success(records)
+
+    def construct_data(self, records, user_cart):
+        """
+            构造购物车列表数据
+        :param records:
+        :param user_cart:
+        :return:
+        """
         carts = dict()
         for key, value in user_cart.items():
-            goods_id, unit_id = key.split(":")
+            goods_id, unit_id = key.decode().split(":")
             carts[goods_id] = {"checked_unit": unit_id, "count": value}
 
         for record in records:
-            record.update(carts.get(record.id))
-
-        return success(records)
+            record.update(carts.get(str(record['id'])))
+        return records
