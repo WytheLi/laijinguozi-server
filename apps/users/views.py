@@ -2,6 +2,7 @@ import time
 
 from django.forms import model_to_dict
 from django_redis import get_redis_connection
+from rest_framework.exceptions import AuthenticationFailed, ParseError
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -9,7 +10,6 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import ObtainJSONWebToken
 
-from utils import status_code
 from utils.response import success, fail
 from .models import Users
 from .serializers import WechatLoginSerializer, UserSerializer, WechatRegisterSerializer
@@ -29,17 +29,19 @@ class LoginView(ObtainJSONWebToken):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            user = serializer.validated_data.get('user')
-            token = serializer.validated_data.get('token')
+        if not serializer.is_valid():
+            raise ParseError('用户名或密码错误！')
 
-            user_info = model_to_dict(user, fields=['id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee'])
+        user = serializer.validated_data.get('user')
+        token = serializer.validated_data.get('token')
 
-            data = {
-                'user': user_info,
-                'token': token
-            }
-            return success(data)
+        user_info = model_to_dict(user, fields=['id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee'])
+
+        data = {
+            'user': user_info,
+            'token': token
+        }
+        return success(data)
 
 
 class WechatLoginView(APIView):
@@ -83,7 +85,7 @@ class WechatLoginView(APIView):
         if token:
             return success({'token': token})
         else:
-            return success(data={'openid': self.validated_data.get('openid')}, **status_code.WX_LOGIN_ERROR)
+            return success(data={'openid': self.validated_data.get('openid')})
 
 
 class WechatRegisterView(GenericAPIView):

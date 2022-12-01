@@ -9,6 +9,8 @@ from django_redis import get_redis_connection
 from rest_framework import status
 from sentry_sdk.integrations.django import DjangoIntegration
 
+from utils import error_message
+
 
 class JwtTokenBlackMiddleware(MiddlewareMixin):
     """
@@ -44,4 +46,5 @@ class ExceptionMiddleware(MiddlewareMixin):
             )
             sentry_sdk.capture_exception(exception)
 
-        return JsonResponse(data={'code': 500, 'msg': str(exception)}, status=500)
+        code, message = error_message.UNKNOWN_ERROR
+        return JsonResponse(data={'code': code, 'msg': message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

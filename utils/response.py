@@ -7,5 +7,5 @@ def success(data=None, msg='success.'):
     return Response({'code': 0, 'msg': msg, 'data': data})
 
 
-def fail(msg, code=500):
+def fail(msg, code=1000):
     return Response({'code': code, 'msg': msg})

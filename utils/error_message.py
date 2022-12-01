@@ -1,0 +1,13 @@
+UNKNOWN_ERROR = (1000, '未知的错误！')
+PARSE_ERROR = (1001, '请求参数错误！')
+AUTHENTICATION_FAILED = (1002, '身份验证失败！')
+NOT_AUTHENTICATED = (1003, '没有提供身份验证凭据！')
+PERMISSION_DENIED = (1004, '您没有执行此操作的权限！')
+NOT_FOUND = (1005, '没有找到该资源！')
+METHOD_NOT_ALLOWED = (1006, '请求方法不被允许！')
+NOT_ACCEPTABLE = (1007, '返回结果前端无法解析！')
+UNSUPPORTED_MEDIA_TYPE = (1008, '无法处理请求附带的媒体格式！')
+THROTTLED = (1009, '访问频次限制！')
+
+WX_LOGIN_ERROR = (1021, '该微信未绑定手机信息，注册之后方可跳转。')
+WX_REQUIRED_PARAM_CODE = (1022, 'required param code.')
