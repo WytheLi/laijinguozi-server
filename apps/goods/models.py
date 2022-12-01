@@ -88,10 +88,10 @@ class Material(BaseModel):
         :return:
         """
         # 为了显示友好，换算比例为整数时浮点数转化为整数
-        if self.sale_unit_weight is not None and int(self.sale_unit_weight) == self.sale_unit_weight:
-            sale_unit_weight = int(self.sale_unit_weight)
+        if self.retail_unit_weight is not None and int(self.retail_unit_weight) == self.retail_unit_weight:
+            retail_unit_weight = int(self.retail_unit_weight)
         else:
-            sale_unit_weight = self.sale_unit_weight
+            retail_unit_weight = self.retail_unit_weight
 
         if self.mini_unit_weight is not None and int(self.mini_unit_weight) == self.mini_unit_weight:
             mini_unit_weight = int(self.mini_unit_weight)
@@ -99,9 +99,9 @@ class Material(BaseModel):
             mini_unit_weight = self.mini_unit_weight
 
         return f'1{self.purchase_unit.name}' \
-               f'*{sale_unit_weight}{self.sale_unit.name}' \
+               f'*{retail_unit_weight}{self.retail_unit.name}' \
                f'*{mini_unit_weight}{self.mini_unit.name}' \
-                if mini_unit_weight else f'1{self.purchase_unit.name}*{sale_unit_weight}{self.sale_unit.name}'
+                if mini_unit_weight else f'1{self.purchase_unit.name}*{retail_unit_weight}{self.retail_unit.name}'
 
 
 class Goods(BaseModel):
@@ -124,7 +124,7 @@ class Goods(BaseModel):
     whole_piece_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件售卖折后价')
     retail_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售售卖折后价')
     enable_whole_piece = models.BooleanField(default=False, verbose_name='整件售卖')
-    enable_retail = models.BooleanField(default=False, verbose_name='零售售卖')
+    enable_retail = models.BooleanField(default=True, verbose_name='零售售卖')
 
     whole_piece_launched_num = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件起售数量')
     retail_launched_num = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售起售数量')
@@ -156,6 +156,14 @@ class Stock(BaseModel):
         db_table = 'fruits_stock'
         verbose_name = '库存'
         verbose_name_plural = verbose_name
+
+    @property
+    def whole_piece_stock(self):
+        """
+            换算整件库存
+        :return:
+        """
+        return int(self.stock / self.goods.material.retail_unit_weight)
 
 
 class GoodsComment(BaseModel):

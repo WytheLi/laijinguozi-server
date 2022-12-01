@@ -66,7 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'utils.exceptions.ExceptionMiddleware',
+    'utils.middlewares.ExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'laijinguozi.urls'

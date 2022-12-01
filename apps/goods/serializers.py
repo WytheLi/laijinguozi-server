@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django.db import transaction
 from rest_framework import serializers
 
+from utils.constants import GoodsState
 from .models import Material, Goods, Stock
 
 
@@ -24,7 +27,7 @@ class MaterialSerializer(serializers.ModelSerializer):
         purchase_unit = validated_data.get('purchase_unit')
         retail_unit = validated_data.get('retail_unit')
         mini_unit = validated_data.get('mini_unit')
-        retail_unit_weight = validated_data.get('sale_unit_weight')
+        retail_unit_weight = validated_data.get('retail_unit_weight')
         mini_unit_weight = validated_data.get('mini_unit_weight')
         if any([purchase_unit, retail_unit, mini_unit, retail_unit_weight, mini_unit_weight]):
             instance.spec = instance.spec_text
@@ -102,6 +105,36 @@ class CheckedMaterialCreateGoodsSerializer(serializers.ModelSerializer):
                   'enable_whole_piece', 'enable_retail', 'whole_piece_launched_num', 'retail_launched_num', 'k', 'store')
 
 
+class GoodsStateChangeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Goods
+        fields = ('state',)
+
+    def update(self, instance, validated_data):
+        """
+            商品状态变更
+            TODO 状态变更日志
+        :param instance:
+        :param validated_data:
+        :return:
+        """
+        state = validated_data.get('state')
+        if (state in GoodsState.CHECKED.value and instance.state == GoodsState.UN_CHECKED.value) or \
+                (state == GoodsState.UN_SALE.value and instance.state == GoodsState.ON_SALE.value):
+            instance.state = state
+        elif (state == GoodsState.ON_SALE.value and instance.state in [GoodsState.APPROVE.value, GoodsState.UN_SALE.value]):
+            if (instance.enable_whole_piece and instance.has_stock) or (instance.enable_retail and instance.has_stock_retail):
+                instance.state = state  # 上架
+                instance.latest_shelf_time = datetime.now()
+            else:
+                raise serializers.ValidationError('商品库存为0，不能上架!')
+        else:
+            raise serializers.ValidationError('状态修改失败！')
+        instance.save()
+        return instance
+
+
 class AddStockSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -115,8 +148,12 @@ class AddStockSerializer(serializers.ModelSerializer):
         final_stock = origin_stock + stock  # 修改后库存
         try:
             with transaction.atomic():
-                instance = Stock.objects.filter(goods=goods, stock=origin_stock).select_for_update()
-                instance.update(stock=final_stock)
+                Stock.objects.filter(goods=goods, stock=origin_stock).select_for_update().update(stock=final_stock)
+
+                instance.goods.has_stock_retail = True
+                if instance.whole_piece_stock:
+                    instance.goods.has_stock = True
+                instance.goods.save()
         except Exception as e:
             transaction.rollback()
             raise e
@@ -128,6 +165,11 @@ class AddStockSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 stock = Stock.objects.select_for_update().create(**validated_data)
+
+                stock.goods.has_stock_retail = True
+                if stock.whole_piece_stock:
+                    stock.goods.has_stock = True
+                stock.goods.save()
         except Exception as e:
             transaction.rollback()
             raise e

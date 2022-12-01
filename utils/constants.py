@@ -10,3 +10,4 @@ class GoodsState(Enum):
     DRAFT = 6       # 草稿
 
     SOLD = [ON_SALE, UN_SALE]   # 销售过（包括销售中）
+    CHECKED = [APPROVE, NO_PASS]    # 经过审批的

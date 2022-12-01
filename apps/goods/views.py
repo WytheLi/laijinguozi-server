@@ -10,7 +10,7 @@ from utils.filter_backend import MaterialFilter
 from utils.response import success
 from .models import Material, Goods, Stock
 from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCreateGoodsSerializer, \
-    AddStockSerializer
+    AddStockSerializer, GoodsStateChangeSerializer
 
 
 # Create your views here.
@@ -118,7 +118,7 @@ class MaterialViewSet(viewsets.GenericViewSet):
 class GoodsViewSet(viewsets.GenericViewSet):
     permission_classes = (DjangoModelPermissions,)
 
-    queryset = Goods.objects.filter(is_delete=False, state=constants.GoodsState.ON_SALE.value)
+    queryset = Goods.objects.filter(is_delete=False)
 
     # 排序，rest_framework.filters.OrderingFilter
     # 过滤（内置过滤类），rest_framework.filters.SearchFilter
@@ -155,25 +155,29 @@ class GoodsViewSet(viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         """
             创建商品
-                {
-                    "material": {
-                        "code": "168172",
-                        "name": "富士苹果",
-                        "brand": 1,
-                        "category": 1,
-                        "origin": "中国山东",
-                        "images": "http://123.com",
-                        "description": "清甜爽口",
-                        "purchase_unit": 2,
-                        "sale_unit": 1,
-                        "sale_unit_weight": 10
-                    },
-                    "original_price": 18,
-                    "discount_price": 16,
-                    "unit": 1,
-                    "k": 3,
-                    "store": 1
-                }
+
+            {
+                "material": {
+                    "code": "16801",
+                    "name": "富士苹果",
+                    "brand": 1,
+                    "category": 6,
+                    "origin": "中国山东",
+                    "images": "http://123.com",
+                    "description": "清甜爽口",
+                    "purchase_unit": 2,
+                    "retail_unit": 1,
+                    "retail_unit_weight": 10
+                },
+                "whole_piece_price": 520,
+                "retail_price": 500,
+                "whole_piece_discount_price": 12,
+                "retail_discount_price": 10,
+                "enable_whole_piece": true,
+                "enable_retail": true,
+                "k": 3,
+                "store": 1
+            }
         :param request:
         :param args:
         :param kwargs:
@@ -184,18 +188,24 @@ class GoodsViewSet(viewsets.GenericViewSet):
         serializer.save()
         return success()
 
-    def up_down(self):
+    def change_state(self, request, pk, *args, **kwargs):
         """
-            商品上下架
+            商品状态变更
+                - 待审核 -> 审核通过
+                - 待审核 -> 审核不通过
+                - 审核通过 -> 已上架
+                - 已上架 -> 已下架
 
             上架：
                 1、状态必须为`待上架`或`已下架`
                 2、库存一定要大于0
-            下架：
-                状态必须为`已上架（售卖中）`
         :return:
         """
-        pass
+        goods = Goods.objects.get(pk=pk)
+        serializer = GoodsStateChangeSerializer(instance=goods, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success()
 
 
 class StockViewSet(viewsets.GenericViewSet):
@@ -213,7 +223,7 @@ class StockViewSet(viewsets.GenericViewSet):
         stock = Stock.objects.get(goods__id=goods_id)
         return stock
 
-    def create_or_update(self, request, *args, **kwargs):
+    def add_stock(self, request, *args, **kwargs):
         """
             增加库存
                 1、有该商品的库存记录，增加库存数量
@@ -237,7 +247,7 @@ class StockViewSet(viewsets.GenericViewSet):
             serializer.save()
         else:
             stock = self.get_object()
-            serializer = self.get_serializer(stock, data=request_body, partial=True)
+            serializer = self.get_serializer(stock, data=request_body)
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return success()
