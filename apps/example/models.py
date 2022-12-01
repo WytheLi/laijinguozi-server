@@ -16,7 +16,7 @@ class Province(models.Model):
 class City(models.Model):
     """市"""
     name = models.CharField(max_length=5)
-    province = models.ForeignKey(Province, models.PROTECT, related_name='cities', verbose_name='省份')
+    province = models.ForeignKey(Province, models.CASCADE, related_name='cities', verbose_name='省份')
 
     class Meta:
         db_table = 'example_city'
@@ -28,8 +28,8 @@ class Person(models.Model):
     """人"""
     name = models.CharField(max_length=10)
     visitation = models.ManyToManyField(City, related_name="visitor", verbose_name='旅游过的城市')
-    hometown = models.ForeignKey(City, models.PROTECT, related_name="birth", verbose_name='出生城市')
-    living = models.ForeignKey(City, models.PROTECT, related_name="citizen", verbose_name='居住城市')
+    hometown = models.ForeignKey(City, models.CASCADE, related_name="birth", verbose_name='出生城市')
+    living = models.ForeignKey(City, models.CASCADE, related_name="citizen", verbose_name='居住城市')
 
     class Meta:
         db_table = 'example_person'

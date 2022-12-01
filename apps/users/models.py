@@ -73,7 +73,7 @@ class WechatUser(BaseModel):
     """
         微信用户
     """
-    user = models.ForeignKey(Users, models.PROTECT, null=True, blank=True,  verbose_name='用户')
+    user = models.ForeignKey(Users, models.CASCADE, null=True, blank=True,  verbose_name='用户')
     openid = models.CharField(max_length=128, unique=True, verbose_name='open_id')
     session_key = models.CharField(max_length=128, verbose_name='对用户数据进行 加密签名 的密钥')     # 项目统一用的 secret_key
 
@@ -88,9 +88,9 @@ class DeliveryAddress(BaseModel):
         用户的收货地址
     """
     user = models.ForeignKey(Users, models.CASCADE, related_name='address', verbose_name='用户')
-    province = models.ForeignKey('areas.Area', on_delete=models.PROTECT, related_name='province', verbose_name='省')
-    city = models.ForeignKey('areas.Area', on_delete=models.PROTECT, related_name='city', verbose_name='市')
-    district = models.ForeignKey('areas.Area', on_delete=models.PROTECT, related_name='district', verbose_name='区')
+    province = models.ForeignKey('areas.Area', on_delete=models.CASCADE, related_name='province', verbose_name='省')
+    city = models.ForeignKey('areas.Area', on_delete=models.CASCADE, related_name='city', verbose_name='市')
+    district = models.ForeignKey('areas.Area', on_delete=models.CASCADE, related_name='district', verbose_name='区')
     detailed_address = models.CharField(max_length=256, verbose_name='详细地址')
     longitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='经度')
     latitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='纬度')

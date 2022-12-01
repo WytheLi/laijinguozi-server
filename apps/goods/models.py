@@ -63,11 +63,11 @@ class Material(BaseModel):
     """
     code = models.CharField(max_length=32, unique=True, verbose_name='商品编码')
     name = models.CharField(max_length=16, verbose_name='商品名称')
-    brand = models.ForeignKey(Brand, on_delete=models.PROTECT, verbose_name='品牌')
-    category = models.ForeignKey(GoodsCategory, on_delete=models.PROTECT, related_name='goods_category', verbose_name='类别')
-    purchase_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='purchase_unit', verbose_name='采购单位，例：整件售卖')
-    retail_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='retail_unit', verbose_name='零售单位')
-    mini_unit = models.ForeignKey(GoodsUnit, models.PROTECT, related_name='mini_unit', null=True, blank=True, verbose_name='最小单位，例：一袋饺子里有20个，`袋`为销售单位，`个`为最小单位')
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, verbose_name='品牌')
+    category = models.ForeignKey(GoodsCategory, on_delete=models.CASCADE, related_name='goods_category', verbose_name='类别')
+    purchase_unit = models.ForeignKey(GoodsUnit, models.CASCADE, related_name='purchase_unit', verbose_name='采购单位，例：整件售卖')
+    retail_unit = models.ForeignKey(GoodsUnit, models.CASCADE, related_name='retail_unit', verbose_name='零售单位')
+    mini_unit = models.ForeignKey(GoodsUnit, models.CASCADE, related_name='mini_unit', null=True, blank=True, verbose_name='最小单位，例：一袋饺子里有20个，`袋`为销售单位，`个`为最小单位')
     retail_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, verbose_name='销售单位换算比例，例：1箱=20包')
     mini_unit_weight = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name='最小单位换算比例，例：1包=30串')
     spec = models.CharField(max_length=16, verbose_name='规格')
@@ -117,8 +117,7 @@ class Goods(BaseModel):
         (6, '草稿')
     )
 
-    material = models.ForeignKey(Material, models.PROTECT, related_name='material', verbose_name='物料')
-
+    material = models.ForeignKey(Material, models.CASCADE, related_name='material', verbose_name='物料')
     whole_piece_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件价格')
     retail_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售价格')
     whole_piece_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件售卖折后价')
@@ -137,7 +136,7 @@ class Goods(BaseModel):
     comments = models.IntegerField(default=0, verbose_name='评论数量')
 
     state = models.SmallIntegerField(choices=STATE_CHOICES, default=2, verbose_name='状态')
-    store = models.ForeignKey(Store, models.PROTECT, verbose_name='店铺')
+    store = models.ForeignKey(Store, models.CASCADE, verbose_name='店铺')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
     latest_shelf_time = models.DateTimeField(null=True, blank=True, verbose_name='最近上架时间')
 

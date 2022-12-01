@@ -2,11 +2,16 @@
 - python3.7
 - django3.2
 
-### 模块
-```
-cd apps
-python ..\manage.py startapp users
-```
+### 版本迭代
+#### v1.0
+1. 完成商品模块，商品的增、删、改、查。
+2. 完成商品状态的修改，审核、上下架
+3. 完成文件上传服务，管理商品图片、用户头像、活动轮播图等资源的存储
+4. 完成购物车加购，勾选购物车商品计算积分抵扣优惠
+5. 完成库存补货，库存流水记录
+6. 完成订单下单、微信支付、退款（整单退款、部分退款视情况而定）
+7. 完成库存小于日均销量的20%短信提示补货
+8. 完成操作日志，价格修改日志、商品上下架日志、用户积分日志。
 
 ### Sentry
 定义： sentry是一个基于Django构建的现代化的实时事件日志监控、记录和聚合平台。错误追踪工具
@@ -31,11 +36,6 @@ for setting in dir(mod):
         setattr(self, setting, setting_value)
 ```
 
-### Django项目理解（想到一句写一句）
-```
-1、序列化器，不仅是序列化、反序列化的工具，同时隔离了view和model，所有的业务逻辑都应该在序列化器中实现。
-
-```
 
 ### jwt token主动失效
 1、token黑名单
@@ -57,7 +57,7 @@ if (pm.response.code == 200 || pm.response.code == 201) {
 }
 ```
 
-### django orm VS 
+### django orm VS SQLAlchemy
 1、实际的项目中Django和SQLAlchemy结合使用，Django用于所有常规的CRUD操作，而SQLAlchemy用于更复杂的查询，“业务规则”和限制条件较多的查询，如各类报表等只读查询。
 
 
