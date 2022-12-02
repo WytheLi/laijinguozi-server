@@ -27,3 +27,9 @@ class RequestType(Enum):
     PATCH = 'PATCH'
     PUT = 'PUT'
     DELETE = 'DELETE'
+
+
+class DeliverType(Enum):
+    HOME_DELIVERY = 1       # 送货上门
+    SELF_PICKUP = 2         # 自提
+    EXPRESS = 3             # 快递
