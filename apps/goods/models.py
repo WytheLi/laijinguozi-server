@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 from django.db import models
+
+from utils.constants import GoodsState
 from utils.models import BaseModel
 
 # Create your models here.
@@ -135,7 +137,7 @@ class Goods(BaseModel):
     sales_volume = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name='销量')
     comments = models.IntegerField(default=0, verbose_name='评论数量')
 
-    state = models.SmallIntegerField(choices=STATE_CHOICES, default=2, verbose_name='状态')
+    state = models.SmallIntegerField(choices=STATE_CHOICES, default=GoodsState.UN_CHECKED.value, verbose_name='状态')
     store = models.ForeignKey(Store, models.CASCADE, verbose_name='店铺')
     is_delete = models.BooleanField(default=False, verbose_name='是否删除')
     latest_shelf_time = models.DateTimeField(null=True, blank=True, verbose_name='最近上架时间')

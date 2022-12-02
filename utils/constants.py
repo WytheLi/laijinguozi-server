@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, unique
 
 
 class GoodsState(Enum):
@@ -11,3 +11,19 @@ class GoodsState(Enum):
 
     SOLD = [ON_SALE, UN_SALE]   # 销售过（包括销售中）
     CHECKED = [APPROVE, NO_PASS]    # 经过审批的
+
+
+class OrderState(Enum):
+    FINISH = 1      # 已完成
+    UNPAID = 2      # 待支付
+    CANCELED = 3    # 已取消
+    UN_DELIVER = 4  # 待配送
+
+
+@unique
+class RequestType(Enum):
+    GET = 'GET'
+    POST = 'POST'
+    PATCH = 'PATCH'
+    PUT = 'PUT'
+    DELETE = 'DELETE'

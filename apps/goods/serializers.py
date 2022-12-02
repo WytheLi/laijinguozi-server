@@ -7,10 +7,61 @@ from utils.constants import GoodsState
 from .models import Material, Goods, Stock
 
 
-class MaterialSerializer(serializers.ModelSerializer):
+class BrandRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        data = {
+            "id": value.id,
+            "name": value.name
+        }
+        return data
 
-    brand_name = serializers.CharField(read_only=True, source='brand.name')
-    category_name = serializers.CharField(read_only=True, source='category.name')
+
+class GoodsCategoryRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        data = {
+            "id": value.id,
+            "name": value.name
+        }
+        return data
+
+
+class GoodsUnitRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        data = {
+            "id": value.id,
+            "name": value.name
+        }
+        return data
+
+
+class OnlyReadMaterialSerializer(serializers.ModelSerializer):
+    brand = BrandRelatedField(read_only=True)
+    category = GoodsCategoryRelatedField(read_only=True)
+    purchase_unit = GoodsUnitRelatedField(read_only=True)
+    retail_unit = GoodsUnitRelatedField(read_only=True)
+    mini_unit = GoodsUnitRelatedField(read_only=True)
+
+    class Meta:
+        model = Material
+        exclude = ('is_delete',)
+
+
+class OnlyReadGoodsSerializer(serializers.ModelSerializer):
+    material = OnlyReadMaterialSerializer()
+    sales_volume = serializers.SerializerMethodField(read_only=True)
+
+    def get_sales_volume(self, instance):
+        if instance.sales_volume is not None and int(instance.sales_volume) == instance.sales_volume:
+            return int(instance.sales_volume)
+        else:
+            return instance.sales_volume
+
+    class Meta:
+        model = Goods
+        exclude = ('is_delete',)
+
+
+class OnlyWriteMaterialSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         material = Material(**validated_data)
@@ -37,40 +88,16 @@ class MaterialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Material
-        fields = '__all__'
-        read_only_fields = ('brand_name', 'category_name', 'spec')
-        extra_kwargs = {
-            'is_delete': {'write_only': True},
-            'brand': {'write_only': True},
-            'category': {'write_only': True},
-            'purchase_unit': {'write_only': True},
-            'retail_unit': {'write_only': True},
-            'mini_unit': {'write_only': True},
-            'retail_unit_weight': {'write_only': True},
-            'mini_unit_weight': {'write_only': True}
-        }
+        exclude = ('is_delete',)
 
 
-class GoodsSerializer(serializers.ModelSerializer):
-    material = MaterialSerializer()
-    sales_volume = serializers.SerializerMethodField(read_only=True)
-    comments = serializers.IntegerField(read_only=True)
-    state = serializers.IntegerField(read_only=True)
-    has_stock = serializers.BooleanField(read_only=True)
-    has_stock_retail = serializers.BooleanField(read_only=True)
-    latest_shelf_time = serializers.BooleanField(read_only=True)
+class OnlyWriteGoodsSerializer(serializers.ModelSerializer):
+    material = OnlyWriteMaterialSerializer()
 
     class Meta:
         model = Goods
         fields = ('material', 'whole_piece_price', 'retail_price', 'whole_piece_discount_price', 'retail_discount_price',
-                  'enable_whole_piece', 'enable_retail', 'whole_piece_launched_num', 'retail_launched_num', 'k', 'store',
-                  'sales_volume', 'comments', 'state', 'has_stock', 'has_stock_retail', 'latest_shelf_time')
-
-    def get_sales_volume(self, instance):
-        if instance.sales_volume is not None and int(instance.sales_volume) == instance.sales_volume:
-            return int(instance.sales_volume)
-        else:
-            return instance.sales_volume
+                  'enable_whole_piece', 'enable_retail', 'whole_piece_launched_num', 'retail_launched_num', 'k', 'store')
 
     def create(self, validated_data):
         try:

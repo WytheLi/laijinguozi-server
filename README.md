@@ -13,6 +13,13 @@
 7. 完成库存小于日均销量的20%短信提示补货
 8. 完成操作日志，价格修改日志、商品上下架日志、用户积分日志。
 
+
+### 清除所有app目录/migrations/下除`__init__.py`文件之外的py文件
+```
+find . -path "*migrations*" -name "*.py" -not -path "*__init__*" -exec rm {} \;
+```
+
+
 ### Sentry
 定义： sentry是一个基于Django构建的现代化的实时事件日志监控、记录和聚合平台。错误追踪工具
 - 部署服务：
@@ -91,6 +98,9 @@ docker run --name go-fastdfs-web -d -p 8086:8088 perfree/fastdfsweb
 ```
 > https://sjqzhang.github.io/go-fastdfs/install.html#docker
 
+
+### 全国省市县行政区划SQL代码文件参考
+> https://shopmini.oss-accelerate.aliyuncs.com/city.sql
 
 ### 参考文档
 - Sentry的安装配置集成以及简单的使用

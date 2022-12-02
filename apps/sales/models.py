@@ -6,6 +6,7 @@ from django.db import models
 
 from goods.models import Store, Goods, GoodsUnit
 from users.models import Users, DeliveryAddress
+from utils.constants import OrderState
 from utils.models import BaseModel
 
 # Create your models here.
@@ -40,8 +41,8 @@ class Orders(BaseModel):
     deliver_type = models.SmallIntegerField(choices=DELIVER_TYPE_CHOICES, verbose_name='配送方式')
     freight = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='配送费')
     deliver_person = models.ForeignKey(Users, models.CASCADE, related_name='deliver_orders', verbose_name='配送员')
-    address = models.ForeignKey(DeliveryAddress, models.CASCADE, verbose_name='收货地址')
-    state = models.SmallIntegerField(choices=STATE_CHOICES, verbose_name='订单状态')
+    address = models.ForeignKey(DeliveryAddress, models.CASCADE, null=True, blank=True, verbose_name='收货地址')
+    state = models.SmallIntegerField(choices=STATE_CHOICES, default=OrderState.UNPAID.value, verbose_name='订单状态')
     pay_time = models.DateTimeField(verbose_name='支付时间')
     pay_number = models.CharField(max_length=64, null=True, blank=True, verbose_name='支付单号')
     pay_type = models.SmallIntegerField(choices=PAY_TYPE_CHOICES, default=1, verbose_name='支付方式')

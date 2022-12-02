@@ -13,4 +13,15 @@ class OrderViewSet(GenericViewSet):
     serializer_class = CreateOrderSerializer
 
     def create(self, request, *args, **kwargs):
-        pass
+        """
+            创建订单
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        user = request.user
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()

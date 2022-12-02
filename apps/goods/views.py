@@ -6,10 +6,12 @@ from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from utils import constants
+from utils.constants import RequestType
 from utils.filter_backend import MaterialFilter
 from utils.response import success
 from .models import Material, Goods, Stock
-from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCreateGoodsSerializer, \
+from .serializers import OnlyWriteMaterialSerializer, OnlyReadMaterialSerializer, \
+    OnlyWriteGoodsSerializer, OnlyReadGoodsSerializer, CheckedMaterialCreateGoodsSerializer, \
     AddStockSerializer, GoodsStateChangeSerializer
 
 
@@ -19,14 +21,18 @@ from .serializers import MaterialSerializer, GoodsSerializer, CheckedMaterialCre
 class MaterialViewSet(viewsets.GenericViewSet):
     permission_classes = (DjangoModelPermissions,)
 
-    serializer_class = MaterialSerializer
-
     queryset = Material.objects.filter(is_delete=False)
 
     # 排序、过滤
     filter_backends = [OrderingFilter, MaterialFilter]
     ordering_fields = ["id"]
     search_fields = ['name', 'code', 'brand__name']
+
+    def get_serializer_class(self):
+        if self.request.method == RequestType.GET.value:
+            return OnlyReadMaterialSerializer
+        else:
+            return OnlyWriteMaterialSerializer
 
     def partial_update(self, request, *args, **kwargs):
         """
@@ -146,11 +152,14 @@ class GoodsViewSet(viewsets.GenericViewSet):
         return success(data=serializer.data)
 
     def get_serializer_class(self):
-        material = self.request.data.get('material')
-        if isinstance(material, int):
-            return CheckedMaterialCreateGoodsSerializer
+        if self.request.method == RequestType.GET.value:
+            return OnlyReadGoodsSerializer
         else:
-            return GoodsSerializer
+            material = self.request.data.get('material')
+            if isinstance(material, int):
+                return CheckedMaterialCreateGoodsSerializer
+            else:
+                return OnlyWriteGoodsSerializer
 
     def create(self, request, *args, **kwargs):
         """
