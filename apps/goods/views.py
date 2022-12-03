@@ -164,29 +164,28 @@ class GoodsViewSet(viewsets.GenericViewSet):
     def create(self, request, *args, **kwargs):
         """
             创建商品
-
-            {
-                "material": {
-                    "code": "16801",
-                    "name": "富士苹果",
-                    "brand": 1,
-                    "category": 6,
-                    "origin": "中国山东",
-                    "images": "http://123.com",
-                    "description": "清甜爽口",
-                    "purchase_unit": 2,
-                    "retail_unit": 1,
-                    "retail_unit_weight": 10
-                },
-                "whole_piece_price": 520,
-                "retail_price": 500,
-                "whole_piece_discount_price": 12,
-                "retail_discount_price": 10,
-                "enable_whole_piece": true,
-                "enable_retail": true,
-                "k": 3,
-                "store": 1
-            }
+                {
+                    "material": {
+                        "code": "168179",
+                        "name": "红富士苹果",
+                        "brand": 1,
+                        "category": 1,
+                        "origin": "中国山东",
+                        "images": "http://123.com",
+                        "description": "清甜爽口",
+                        "purchase_unit": 1,
+                        "retail_unit": 2,
+                        "mini_unit": 3,
+                        "retail_unit_weight": 10
+                    },
+                    "whole_piece_price": 520,
+                    "retail_price": 500,
+                    "enable_whole_piece": true,
+                    "enable_retail": true,
+                    "unit": 1,
+                    "k": 3,
+                    "store": 1
+                }
         :param request:
         :param args:
         :param kwargs:

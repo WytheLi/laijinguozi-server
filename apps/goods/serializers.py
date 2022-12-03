@@ -88,7 +88,7 @@ class OnlyWriteMaterialSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Material
-        exclude = ('is_delete',)
+        exclude = ('spec', 'is_delete')
 
 
 class OnlyWriteGoodsSerializer(serializers.ModelSerializer):
