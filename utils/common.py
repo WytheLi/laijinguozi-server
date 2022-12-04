@@ -18,7 +18,7 @@ class Apportion(object):
     def calc_should_divided(self, allocation_value: Decimal):
         """
             计算应分摊的数值
-        :param allocation_value: 待分摊的值（单品） <例：单价*数量 - 不参与分摊的金额>
+        :param allocation_value: 单品参与分摊的金额 <例：单价*数量 - 不参与分摊的金额>
         :return:
         """
         if self.unallocated <= 0:

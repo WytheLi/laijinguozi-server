@@ -1,10 +1,12 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Person, Province, City, Group, Student, Subject
 from .serializers import GroupSerializers
+from .tasks import mul
 
 
 # Create your views here.
@@ -73,3 +75,15 @@ class GroupView(ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         serializer.data
+
+
+def task_add(request, *args, **kwargs):
+    """
+        写入任务
+    :param request:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    mul.delay(10, 20)
+    return HttpResponse('task任务写入成功！')

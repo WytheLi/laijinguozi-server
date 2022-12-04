@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'rest_framework.authtoken',
+    'django_celery_beat',
+
     'users.apps.UsersConfig',
     'home.apps.HomeConfig',
     'areas.apps.AreasConfig',
@@ -269,3 +271,22 @@ LOGGING = {
 # 设置django shell环境（默认为python shell），这里设置为ipython，支持自动补全、自动缩进等
 # pip install ipython -i https://pypi.douban.com/simple
 SHELL_PLUS = 'ipython'
+
+# Celery
+# Broker配置，使用Redis作为消息中间件
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/15'
+# BACKEND配置，这里使用redis
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/15'
+# 结果序列化方案
+CELERY_RESULT_SERIALIZER = 'json'
+# 任务结果过期时间，秒
+CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
+# 时区配置
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    'mul_every_10_seconds': {
+        'task': 'example.tasks.mul',  # 任务路径
+        'schedule': 10,     # 每10秒执行一次
+        'args': (14, 5)
+    }
+}

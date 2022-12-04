@@ -14,7 +14,7 @@
 8. 完成操作日志，价格修改日志、商品上下架日志、用户积分日志。
 
 
-### 清除所有app目录/migrations/下除`__init__.py`文件之外的py文件
+### 清除所有项目目录/migrations/下除`__init__.py`文件之外的py文件
 ```
 find . -path "*migrations*" -name "*.py" -not -path "*__init__*" -exec rm {} \;
 ```
@@ -117,6 +117,44 @@ docker run --name go-fastdfs-web -d -p 8086:8088 perfree/fastdfsweb
 
 - Django 中celery定时任务的使用
 > https://blog.csdn.net/qq_53582111/article/details/120207740
+
+Celery执行异步和周期性任务
+> https://zhuanlan.zhihu.com/p/369639432
+
+```
+ Django==3.2
+ celery==5.0.5
+ redis==3.5.3
+ 
+ # 可选，windows下运行celery 4以后版本，还需额外安装eventlet库
+ eventlet 
+ # 推荐安装, 需要设置定时或周期任务时安装，推荐安装
+ django-celery-beat==2.2.0
+ # 视情况需要，需要存储任务结果时安装，视情况需要
+ django-celery-results==2.0.1
+ # 视情况需要，需要监控celery运行任务状态时安装
+ folower==0.9.7
+```
+启动Celery
+```
+ # Linux下测试，启动Celery
+ celery -A laijinguozi worker -l info
+ # Windows下测试，启动Celery
+ celery -A laijinguozi worker -l info -P eventlet
+ # 如果Windows下Celery不工作，输入如下命令
+ celery -A laijinguozi worker -l info --pool=solo
+```
+> Error: Invalid value for '-A' / '--app':
+> https://github.com/celery/celery/issues/6363
+
+Celery5.0启动失败，降低版本至Celery4.4.0
+> https://www.celerycn.io/fu-lu/django
+
+启动任务调度器beat
+```
+celery -A laijinguozi beat -l info
+```
+
 
 - Kuboard - Kubernetes 多集群管理界面
 > https://kuboard.cn/
