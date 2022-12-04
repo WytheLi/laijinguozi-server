@@ -133,7 +133,9 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# USE_TZ = True
+# 修改TIME_ZONE = 'Asia/Shanghai'后，数据库存储的还是UTC时区的时间，接口返回前端时转换为本地时区。这里希望数据库存储的也是本地时间
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -284,9 +286,13 @@ CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 时区配置
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
-    'mul_every_10_seconds': {
-        'task': 'example.tasks.mul',  # 任务路径
-        'schedule': 10,     # 每10秒执行一次
-        'args': (14, 5)
-    }
+    # 'mul_every_10_seconds': {
+    #     'task': 'example.tasks.mul',  # 任务路径
+    #     'schedule': 10,     # 每10秒执行一次
+    #     'args': (14, 5)
+    # },
+    'order_timeout_cancel_every_60_seconds': {
+        'task': 'sales.tasks.order_timeout_cancel',
+        'schedule': 60,
+    },
 }

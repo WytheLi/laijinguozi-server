@@ -4,6 +4,7 @@ from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from sales.tasks import order_timeout_cancel
 from .models import Person, Province, City, Group, Student, Subject
 from .serializers import GroupSerializers
 from .tasks import mul
@@ -86,4 +87,5 @@ def task_add(request, *args, **kwargs):
     :return:
     """
     mul.delay(10, 20)
+    order_timeout_cancel()
     return HttpResponse('task任务写入成功！')

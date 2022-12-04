@@ -133,7 +133,7 @@ Celery执行异步和周期性任务
  # 视情况需要，需要存储任务结果时安装，视情况需要
  django-celery-results==2.0.1
  # 视情况需要，需要监控celery运行任务状态时安装
- folower==0.9.7
+ flower==0.9.7
 ```
 启动Celery
 ```
@@ -154,6 +154,13 @@ Celery5.0启动失败，降低版本至Celery4.4.0
 ```
 celery -A laijinguozi beat -l info
 ```
+
+celery中task和share_task的区别
+task：装饰函数，将函数当成celery的任务函数
+share_task：
+1. 装饰函数，将函数当成celery的任务函数，
+2. 不依赖某个celery对象，而是加载到内存之后自动添加到celery对象中
+3. 与多个celery对象进行关联
 
 
 - Kuboard - Kubernetes 多集群管理界面
