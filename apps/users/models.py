@@ -8,7 +8,7 @@ from utils.models import BaseModel
 # Create your models here.
 
 
-class Users(AbstractUser):
+class Users(AbstractUser, BaseModel):
     """
         用户：
             - 顾客
@@ -96,7 +96,6 @@ class DeliveryAddress(BaseModel):
     latitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='纬度')
     mobile = models.CharField(max_length=11, verbose_name='手机号码')
     telephone = models.CharField(max_length=10, null=True, blank=True, verbose_name='固定电话')
-    email = models.CharField(max_length=30, null=True, blank=True, verbose_name='电子邮箱')
     is_deleted = models.BooleanField(default=False, verbose_name='逻辑删除')
     is_default = models.BooleanField(default=False, verbose_name='默认地址')
 

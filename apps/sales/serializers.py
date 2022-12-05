@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.db import transaction
 
 from sales.models import Orders, OrderDetails
+from users.models import DeliveryAddress
 from utils.common import Apportion
 from utils.constants import DeliverType
 
@@ -15,18 +16,10 @@ class OnlyWriteOrderDetailSerializer(serializers.ModelSerializer):
 
 class CreateOrderSerializer(serializers.ModelSerializer):
     order_details = OnlyWriteOrderDetailSerializer(many=True)
-    # bill_number = serializers.CharField(read_only=True, label='订单号')
-    # pay_price = serializers.DecimalField(max_digits=8, decimal_places=2, read_only=True, label='实际支付金额')
-    # state = serializers.BooleanField(read_only=True, label='订单状态')
-    # pay_time = serializers.DateTimeField(label='支付时间')
-    # pay_number = serializers.CharField(read_only=True, label='支付单号')
-    # pickup_code = serializers.CharField(read_only=True, label='自提取货码')
-    # is_first = serializers.BooleanField(read_only=True, label='首单')
 
     class Meta:
         model = Orders
         fields = ('order_details', 'store', 'deliver_type', 'address', 'message', 'integral')
-                  # 'bill_number', 'pay_price', 'state', 'pay_time', 'pay_number', 'pickup_code', 'is_first')
 
     def validate(self, validated_data):
         """
@@ -40,7 +33,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
         if validated_data.get('deliver_type') != DeliverType.SELF_PICKUP.value and not validated_data.get('address'):
             raise serializers.ValidationError('配送方式不为自提时，收货地址必填！')
-        if validated_data.get('integral') > user.total_points:
+        if validated_data.get('integral') and validated_data.get('integral') > user.total_points:
             raise serializers.ValidationError('积分不足！')
 
         order_details = validated_data.get('order_details')
@@ -87,9 +80,9 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 order = Orders(**validated_data)
                 order.bill_number = order.get_order_no()
-                order.total_price = total_price
                 integral_deduct_price = order.calculate_integral_deduct_price()
                 order.integral_deduct_price = integral_deduct_price
+                order.total_price = total_price - integral_deduct_price
                 order.save()
 
                 integral_appo, integral_deduct_price_appo = (None, None)
@@ -122,3 +115,119 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         else:
             transaction.commit()
         return order
+
+
+class UserRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        return {
+            "id": value.id,
+            "name": value.username
+        }
+
+
+class DeliveryAddressRelatedField(serializers.RelatedField):
+
+    def to_representation(self, delivery_address):
+        data = {
+            'province': delivery_address.province.name,
+            'city': delivery_address.city.name,
+            'district': delivery_address.district.name,
+            'detailed_address': delivery_address.detailed_address,
+            'longitude': delivery_address.longitude,
+            'latitude': delivery_address.latitude,
+            'mobile': delivery_address.mobile,
+            'telephone': delivery_address.telephone
+        }
+        return data
+
+    class Meta:
+        model = DeliveryAddress
+        fields = ('province', 'city', 'district', 'detailed_address', 'longitude', 'latitude', 'mobile', 'telephone')
+
+
+class GoodsRelatedField(serializers.RelatedField):
+    def to_representation(self, goods):
+        data = {
+            "id": goods.id,
+            "brand_name": goods.material.brand.name,
+            "name": goods.material.name,
+            "code": goods.material.code,
+            "images": goods.material.images
+        }
+        return data
+
+
+class OrderDetailsSerializer(serializers.ModelSerializer):
+
+    unit = serializers.CharField(read_only=True, source='unit.name')
+    goods = GoodsRelatedField(read_only=True)
+
+    class Meta:
+        model = OrderDetails
+        exclude = ('order', 'user', 'pay_time', 'state', 'is_delete')
+
+
+class OrderDetailsRelatedField(serializers.RelatedField):
+    def to_representation(self, order_detail):
+        data = {
+            "id": order_detail.goods.id,
+            "images": order_detail.goods.material.images
+        }
+        return data
+
+
+class OnlyReadOrderSerializer(serializers.ModelSerializer):
+    """
+        订单详情序列化器
+
+        `RelatedField`和`ModelSerializer`都能处理嵌套的序列化，对于多层嵌套序列化`ModelSerializer`应该更为灵活一点。
+
+            RelatedField必须重写`to_representation()方法。
+            NotImplementedError: OrderDetailsRelatedFieldSerializer.to_representation() must be implemented for field.
+
+        Django关联序列化，通过打印到控制台的SQL观察，全部为分步查询（否则是我的语法不当）。当多级关联时，容易有性能瓶颈。
+    """
+    user = UserRelatedField(read_only=True)
+    store = serializers.CharField(read_only=True, source='store.name')
+    deliver_person = serializers.CharField(read_only=True, source='deliver_person.name')
+    address = DeliveryAddressRelatedField(read_only=True)
+    order_details = OrderDetailsSerializer(read_only=True, many=True)   # OrderDetails中order外键需要添加related_name='order_details'，否则不生效。
+    state = serializers.SerializerMethodField()
+    deliver_type = serializers.SerializerMethodField()
+    pay_type = serializers.SerializerMethodField()
+    count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Orders
+        exclude = ('is_delete',)
+
+    def get_state(self, obj):
+        return obj.state_text
+
+    def get_deliver_type(self, obj):
+        return obj.deliver_type_text
+
+    def get_pay_type(self, obj):
+        return obj.pay_type_text
+
+    def get_count(self, obj):
+        return obj.order_details.count()
+
+
+class OnlyReadOrdersSerializer(serializers.ModelSerializer):
+    """
+        订单列表序列化器
+    """
+    order_details = OrderDetailsRelatedField(read_only=True, many=True)
+    state = serializers.SerializerMethodField()
+    count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Orders
+        fields = ('total_price', 'state', 'create_time', 'order_details', 'count')
+
+    def get_state(self, obj):
+        return obj.state_text
+
+    def get_count(self, obj):
+        return obj.order_details.count()

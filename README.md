@@ -179,3 +179,10 @@ share_task：
 
 - EverSQL查询优化器
 > https://www.eversql.com/
+
+
+### 项目报错及对应的解决方案
+创建订单时报错：外键约束失败
+```
+django.db.utils.IntegrityError: FOREIGN KEY constraint failed.
+```

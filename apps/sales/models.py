@@ -36,7 +36,7 @@ class Orders(BaseModel):
     bill_number = models.CharField(max_length=24, unique=True, verbose_name='订单编号')
     user = models.ForeignKey(Users, models.CASCADE, verbose_name='用户')
     store = models.ForeignKey(Store, models.CASCADE, verbose_name='店铺')
-    total_price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='价格')
+    total_price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='合计')    # 减去优惠后的金额
     pay_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, verbose_name='实际支付金额')
     deliver_type = models.SmallIntegerField(choices=DELIVER_TYPE_CHOICES, verbose_name='配送方式')
     freight = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='配送费')
@@ -87,12 +87,34 @@ class Orders(BaseModel):
             计算积分抵扣金额，100积分抵扣1元
         :return:
         """
-        return self.integral / Decimal('100.00')
+        return self.integral / Decimal('100.00') if self.integral else 0
+
+    @property
+    def state_text(self):
+        state_map = {key: val for key, val in self.STATE_CHOICES}
+        return state_map.get(self.state)
+
+    @property
+    def deliver_type_text(self):
+        deliver_type_map = {key: val for key, val in self.DELIVER_TYPE_CHOICES}
+        return deliver_type_map.get(self.deliver_type)
+
+    @property
+    def pay_type_text(self):
+        pay_type_map = {key: val for key, val in self.PAY_TYPE_CHOICES}
+        return pay_type_map.get(self.pay_type)
 
 
 class OrderDetails(BaseModel):
 
-    order = models.ForeignKey(Orders, models.CASCADE, verbose_name='订单ID')
+    STATE_CHOICES = (
+        (1, '已收货'),  # finish
+        (2, '待支付'),
+        (3, '已取消'),
+        (4, '待配送')
+    )
+
+    order = models.ForeignKey(Orders, models.CASCADE, related_name='order_details', verbose_name='订单ID')
     goods = models.ForeignKey(Goods, models.CASCADE, verbose_name='商品')
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='单价')
     num = models.DecimalField(max_digits=6, decimal_places=2, verbose_name='数量')
@@ -102,6 +124,7 @@ class OrderDetails(BaseModel):
     user = models.ForeignKey(Users, models.CASCADE, verbose_name='用户')
     pay_time = models.DateTimeField(null=True, blank=True, verbose_name='支付时间')
     state = models.SmallIntegerField(default=OrderState.UNPAID.value, verbose_name='订单状态')
+    is_delete = models.BooleanField(default=False, verbose_name='删除')
 
     # 部分退款时，退积分、退钱。
     integral = models.IntegerField(default=0, verbose_name='使用积分')
@@ -111,6 +134,11 @@ class OrderDetails(BaseModel):
         db_table = 'fruits_order_details'
         verbose_name = '订单明细'
         verbose_name_plural = verbose_name
+
+    @property
+    def state_text(self):
+        state_map = {key: val for key, val in self.STATE_CHOICES}
+        return state_map.get(self.state)
 
 
 class ReturnOrders(BaseModel):
