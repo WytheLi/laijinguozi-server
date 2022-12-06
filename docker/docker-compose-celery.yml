@@ -2,8 +2,19 @@ version: '2'
 services:
   celery:
     image: base:latest
+    container_name: celery
     env_file:
-      - .env
+      - ../.env
     volumes:
       - "/etc/localtime:/etc/localtime"
+      - "$PWD:/opt/laijinguozi-server"
     command: ['celery', 'worker', '-A', 'laijinguozi', '--loglevel', 'info']
+  celery_beat:
+    image: base:latest
+    container_name: celery_beat
+    env_file:
+      - ../.env
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - "$PWD:/opt/laijinguozi-server"
+    command: [ 'celery', 'beat', '-A', 'laijinguozi', '--loglevel', 'info' ]
