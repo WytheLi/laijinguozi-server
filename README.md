@@ -13,6 +13,8 @@
 7. 完成库存小于日均销量的20%短信提示补货
 8. 完成操作日志，价格修改日志、商品上下架日志、用户积分日志。
 
+### Dockerfile部署django和celery服务
+> https://cloud.tencent.com/developer/article/1926787
 
 ### 清除所有项目目录/migrations/下除`__init__.py`文件之外的py文件
 ```
