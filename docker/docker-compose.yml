@@ -1,0 +1,14 @@
+version: '2'
+services:
+  shop:
+    image: base:latest
+    env_file:
+      - ../.env
+    ports:
+    - 8080:8080
+    entrypoint:
+      "uwsgi config_release.ini"
+    volumes:
+      - ../config_release.ini:/home/user/config_release.ini
+      - /opt/logs:/opt/logs
+      - "/etc/localtime:/etc/localtime"

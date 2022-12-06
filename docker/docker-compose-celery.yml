@@ -1,0 +1,9 @@
+version: '2'
+services:
+  celery:
+    image: base:latest
+    env_file:
+      - .env
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+    command: ['celery', 'worker', '-A', 'laijinguozi', '--loglevel', 'info']

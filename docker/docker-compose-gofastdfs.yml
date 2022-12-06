@@ -1,0 +1,22 @@
+version: '2'
+services:
+  go_fastdfs:
+    image: sjqzhang/go-fastdfs
+    container_name: go_fastdfs
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - "/opt/go-fastdfs/data:/usr/local/go-fastdfs/data"
+    environment:
+      GO_FASTDFS_DIR: /usr/local/go-fastdfs/data
+    ports:
+      - 8087:8080
+
+  go_fastdfs_web:
+    image: perfree/fastdfsweb
+    container_name: go_fastdfs_web
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+    ports:
+      - 8088:8088
+    depends_on:
+      - go_fastdfs
