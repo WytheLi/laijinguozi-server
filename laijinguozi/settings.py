@@ -52,12 +52,12 @@ INSTALLED_APPS = [
 
     'users.apps.UsersConfig',
     'home.apps.HomeConfig',
-    'areas.apps.AreasConfig',
     'goods.apps.GoodsConfig',
     'example.apps.ExampleConfig',
     'upload_file.apps.UploadFileConfig',
     'carts.apps.CartsConfig',
     'sales.apps.SalesConfig',
+    'areas.apps.AreasConfig',
 ]
 
 MIDDLEWARE = [

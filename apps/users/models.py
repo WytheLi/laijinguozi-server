@@ -88,9 +88,9 @@ class DeliveryAddress(BaseModel):
         用户的收货地址
     """
     user = models.ForeignKey(Users, models.CASCADE, related_name='address', verbose_name='用户')
-    province = models.ForeignKey('areas.Area', on_delete=models.CASCADE, related_name='province', verbose_name='省')
-    city = models.ForeignKey('areas.Area', on_delete=models.CASCADE, related_name='city', verbose_name='市')
-    district = models.ForeignKey('areas.Area', on_delete=models.CASCADE, related_name='district', verbose_name='区')
+    province = models.ForeignKey('areas.Areas', on_delete=models.CASCADE, related_name='province', verbose_name='省')
+    city = models.ForeignKey('areas.Areas', on_delete=models.CASCADE, related_name='city', verbose_name='市')
+    district = models.ForeignKey('areas.Areas', on_delete=models.CASCADE, related_name='district', verbose_name='区')
     detailed_address = models.CharField(max_length=256, verbose_name='详细地址')
     longitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='经度')
     latitude = models.CharField(max_length=32, null=True, blank=True, verbose_name='纬度')
