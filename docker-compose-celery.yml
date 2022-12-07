@@ -4,7 +4,7 @@ services:
     image: base:latest
     container_name: celery
     env_file:
-      - ../.env
+      - .env
     volumes:
       - "/etc/localtime:/etc/localtime"
       - "../../laijinguozi-server:/opt/laijinguozi-server"
@@ -13,7 +13,7 @@ services:
     image: base:latest
     container_name: celery_beat
     env_file:
-      - ../.env
+      - .env
     volumes:
       - "/etc/localtime:/etc/localtime"
       - "../../laijinguozi-server:/opt/laijinguozi-server"

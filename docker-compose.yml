@@ -1,0 +1,48 @@
+version: '2'
+services:
+  web_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+    - "8080:8080"
+    entrypoint:
+      "uwsgi config_release.ini"
+    links:
+      - redis
+    volumes:
+      - ../config_release.ini:/home/user/config_release.ini
+      - /opt/logs:/opt/logs
+      - "/etc/localtime:/etc/localtime"
+      - .:/code
+
+  redis:
+    image: redis:alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - /opt/redis/data:/data
+      - /opt/redis/conf/redis.conf:/etc/redis/redis.conf
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ['celery', 'worker', '-A', 'laijinguozi', '--loglevel', 'info']
+    volumes:
+      - .:/code
+    links:
+      - redis
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: [ 'celery', 'beat', '-A', 'laijinguozi', '--loglevel', 'info' ]
+    volumes:
+      - .:/code
+    links:
+      - redis
