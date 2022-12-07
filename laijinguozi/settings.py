@@ -285,6 +285,10 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 时区配置
 CELERY_TIMEZONE = TIME_ZONE
+# Celery日志
+CELERY_CELERYD_LOG_FILE = os.path.join(os.getenv('LOG_PATH', os.path.join(BASE_DIR, 'logs')), "celery_work.log")
+CELERY_CELERYBEAT_LOG_FILE = os.path.join(os.getenv('LOG_PATH', os.path.join(BASE_DIR, 'logs')), "celery_beat.log")
+# 定时任务、周期性任务
 CELERY_BEAT_SCHEDULE = {
     # 'mul_every_10_seconds': {
     #     'task': 'example.tasks.mul',  # 任务路径

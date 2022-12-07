@@ -147,6 +147,8 @@ Celery执行异步和周期性任务
 > Error: Invalid value for '-A' / '--app':
 > https://github.com/celery/celery/issues/6363
 
+'--pool' 默认是prefork(并发)，选择solo之后，发送的任务不会被并发执行(串行)，在worker执行任务过程中，再次发送给worker的任务会排队，执行完一个再执行另一个
+
 Celery5.0启动失败，降低版本至Celery4.4.0
 > https://www.celerycn.io/fu-lu/django
 
