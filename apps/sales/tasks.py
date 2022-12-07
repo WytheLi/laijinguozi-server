@@ -8,6 +8,7 @@ from django.db import transaction
 from django.utils.timezone import get_current_timezone
 
 from sales.models import Orders, OrderDetails
+from utils.common import StockControl
 from utils.constants import OrderState
 
 logger = logging.getLogger('django')  # 获取日志器
@@ -28,7 +29,12 @@ def order_timeout_cancel():
                     order.state = OrderState.CANCELED.value
                     order.save()
 
-                    OrderDetails.objects.filter(order=order).select_for_update().update(state=OrderState.CANCELED.value)
+                    for order_detail in order.order_details.all():
+                        order_detail.state = OrderState.CANCELED.value
+                        order_detail.save()
+
+                        stock = order_detail.goods.stock.first()
+                        StockControl(stock.id).update_stock(order_detail.retail_num, -order_detail.retail_num)
         except Exception as e:
             logger.error('order_timeout_cancel error: %s' % e)
             transaction.rollback()

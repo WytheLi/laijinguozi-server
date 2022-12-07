@@ -21,7 +21,7 @@ class CartSerializer(serializers.Serializer):
         except Goods.DoesNotExist:
             raise serializers.ValidationError('商品不存在!')
 
-        stock_obj = goods.stock_set.first()
+        stock_obj = goods.stock.first()
         if not stock_obj or attrs['count'] > stock_obj.stock:
             raise serializers.ValidationError('商品库存不够！')
         return attrs

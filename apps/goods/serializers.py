@@ -46,8 +46,18 @@ class OnlyReadMaterialSerializer(serializers.ModelSerializer):
         exclude = ('is_delete',)
 
 
+class StockRelatedField(serializers.RelatedField):
+
+    def to_representation(self, stock):
+        return {
+            "stock": stock.stock,
+            "lock_stock": stock.lock_stock
+        }
+
+
 class OnlyReadGoodsSerializer(serializers.ModelSerializer):
     material = OnlyReadMaterialSerializer()
+    stock = StockRelatedField(read_only=True, many=True)
     sales_volume = serializers.SerializerMethodField(read_only=True)
 
     def get_sales_volume(self, instance):
@@ -105,7 +115,7 @@ class OnlyWriteGoodsSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 # django.db.transaction.TransactionManagementError: An error occurred in the current transaction.
                 # You can't execute queries until the end of the 'atomic' block.
-                # 在事务中，不能执行查询语句
+                # 直译过来是：在事务中，不能执行查询语句。没有理解，尝试操作外键查询是可以的（事务中修改关联表数据是必然的）。只是不能执行filter()、get()？
                 save_id = transaction.savepoint()
 
                 material = Material(**validated_data['material'])

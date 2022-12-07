@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from goods.models import Stock
+
 
 class Apportion(object):
 
@@ -33,3 +35,33 @@ class Apportion(object):
             self.surplus_unallocated -= value
             self.counter -= 1
             return value
+
+
+class StockControl(object):
+
+    def __init__(self, stock_id, warehouse_id=None):
+        """
+            库存管理
+            库存不仅需要处理增减问题，库存表属于多方操作的表，固然每次更新的时候需要加锁，否则会因为修改脏读的数据而造成数据不准
+        :param stock_id: 库存id
+        :param warehouse_id: 仓库id
+        """
+        self.stock_id = stock_id
+        self.warehouse_id = warehouse_id
+
+    def update_stock(self, stock, lock_stock):
+        """
+            更新库存
+        :param stock: 需要增减的库存数量，减为负数
+        :param lock_stock: 需要锁定、释放锁定的库存数量，减为负数
+        :return:
+        """
+        queryset = Stock.objects.select_for_update().filter(id=self.stock_id)
+
+        if self.warehouse_id:
+            queryset = queryset.filter(warehouse_id=self.warehouse_id)
+
+        instance = queryset.first()
+        instance.stock += stock
+        instance.lock_stock += lock_stock
+        instance.save()

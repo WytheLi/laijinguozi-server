@@ -3,12 +3,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from utils.constants import RequestType
 from utils.response import success
 from .models import Orders
-from .serializers import CreateOrderSerializer, OnlyReadOrderSerializer, OnlyReadOrdersSerializer
+from .serializers import CreateOrderSerializer, OnlyReadOrderSerializer, OnlyReadOrdersSerializer, OrderCancelSerializer
 
 
 # Create your views here.
@@ -86,6 +87,21 @@ class OrderViewSet(GenericViewSet):
         serializer = self.get_serializer(order)
 
         return success(serializer.data)
+
+
+class OrderCancelView(GenericAPIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    serializer_class = OrderCancelSerializer
+    queryset = Orders.objects.filter(is_delete=False)
+
+    def post(self, request, *args, **kwargs):
+        order = self.get_object()
+        serializer = self.get_serializer(order, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success()
 
 
 class OrderPaymentView(APIView):

@@ -149,7 +149,7 @@ class Goods(BaseModel):
 
 
 class Stock(BaseModel):
-    goods = models.ForeignKey(Goods, models.CASCADE, unique=True, verbose_name='商品')
+    goods = models.ForeignKey(Goods, models.CASCADE, unique=True, related_name='stock', verbose_name='商品')
     stock = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='可用库存')
     lock_stock = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'), verbose_name='占用库存')
 
