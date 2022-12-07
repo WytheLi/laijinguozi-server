@@ -9,3 +9,4 @@ ipython==7.34.0
 django-filter==22.1
 celery==4.4.0
 django-celery-beat==2.2.0
+uwsgi==2.0.18

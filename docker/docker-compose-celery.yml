@@ -7,7 +7,7 @@ services:
       - ../.env
     volumes:
       - "/etc/localtime:/etc/localtime"
-      - "$PWD:/opt/laijinguozi-server"
+      - "../../laijinguozi-server:/opt/laijinguozi-server"
     command: ['celery', 'worker', '-A', 'laijinguozi', '--loglevel', 'info']
   celery_beat:
     image: base:latest
@@ -16,5 +16,5 @@ services:
       - ../.env
     volumes:
       - "/etc/localtime:/etc/localtime"
-      - "$PWD:/opt/laijinguozi-server"
+      - "../../laijinguozi-server:/opt/laijinguozi-server"
     command: [ 'celery', 'beat', '-A', 'laijinguozi', '--loglevel', 'info' ]
