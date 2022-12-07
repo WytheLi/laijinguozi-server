@@ -1,5 +1,7 @@
 import json
+from datetime import datetime
 
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 
@@ -17,6 +19,30 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = ('id', 'username', 'mobile', 'email', 'avatar', 'nickname', 'is_employee')
+
+
+class LoginSerializer(serializers.Serializer):
+
+    username = serializers.CharField(write_only=True, required=True, allow_null=False)
+    password = serializers.CharField(write_only=True, required=True, allow_null=False)
+
+    def validate(self, validated_data):
+        user = authenticate(**validated_data)
+
+        if not user:
+            raise serializers.ValidationError('账号或密码错误！')
+        else:
+            if not user.is_active:
+                raise serializers.ValidationError('账号已禁用！')
+
+            payload = jwt_payload_handler(user)
+            user.last_login = datetime.now()
+            user.save()
+
+            return {
+                "token": jwt_encode_handler(payload),
+                "user": user
+            }
 
 
 class WechatLoginSerializer(serializers.Serializer):
