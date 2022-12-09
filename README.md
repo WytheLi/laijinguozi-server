@@ -1,5 +1,5 @@
 ### 环境
-- python3.7
+- python3.6.13
 - django3.2
 
 ### 版本迭代
@@ -13,6 +13,8 @@
 7. 完成库存小于日均销量的20%短信提示补货
 8. 完成操作日志，价格修改日志、商品上下架日志、用户积分日志。
 
+### Dockerfile部署django和celery服务
+> https://cloud.tencent.com/developer/article/1926787
 
 ### 清除所有项目目录/migrations/下除`__init__.py`文件之外的py文件
 ```
@@ -181,6 +183,11 @@ share_task：
 
 - EverSQL查询优化器
 > https://www.eversql.com/
+
+- 轻量级消息队列Django-Q
+> [轻量级消息队列Django-Q初体验](https://www.django.cn/article/show-35.html)
+> [Django Q官方文档](https://django-q.readthedocs.io/en/latest/index.html)
+
 
 
 ### 项目报错及对应的解决方案
