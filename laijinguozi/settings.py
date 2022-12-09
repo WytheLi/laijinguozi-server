@@ -142,6 +142,9 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+# 静态文件存放目录
+STATIC_ROOT = './static'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -270,9 +273,6 @@ LOGGING = {
     }
 }
 
-# 静态文件存放目录
-STATIC_ROOT = '../static'
-
 # 设置django shell环境（默认为python shell），这里设置为ipython，支持自动补全、自动缩进等
 # pip install ipython -i https://pypi.douban.com/simple
 SHELL_PLUS = 'ipython'
@@ -288,7 +288,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24
 # 时区配置
 CELERY_TIMEZONE = TIME_ZONE
-# Celery日志
+# Celery日志。uwsgi启动celery该配置不生效
 CELERY_CELERYD_LOG_FILE = os.path.join(os.getenv('LOG_PATH', os.path.join(BASE_DIR, 'logs')), "celery_work.log")
 CELERY_CELERYBEAT_LOG_FILE = os.path.join(os.getenv('LOG_PATH', os.path.join(BASE_DIR, 'logs')), "celery_beat.log")
 # 定时任务、周期性任务

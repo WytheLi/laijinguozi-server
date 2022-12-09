@@ -21,6 +21,14 @@
 find . -path "*migrations*" -name "*.py" -not -path "*__init__*" -exec rm {} \;
 ```
 
+### Git空文件夹管理
+Git默认不支持空文件的管理，如果想在Git仓库中提交空文件夹，常用做法是在空文件下新建一个`.gitkeep`文件
+
+(1).查找当前目录下所有的空文件夹
+`find . -type -d -empty`
+(2).查找当前目录下所有的空文件夹并新建一个.gitkeep空文件
+`find . -type -d -empty -exec touch {}/.gitkeep \;`
+
 
 ### Sentry
 定义： sentry是一个基于Django构建的现代化的实时事件日志监控、记录和聚合平台。错误追踪工具
@@ -158,6 +166,7 @@ Celery5.0启动失败，降低版本至Celery4.4.0
 ```
 celery -A laijinguozi beat -l info
 ```
+> celery  root 用户无法启动。如果想强行启动，不用修改代码。直接：`export C_FORCE_ROOT="true"`
 
 celery中task和share_task的区别
 task：装饰函数，将函数当成celery的任务函数
