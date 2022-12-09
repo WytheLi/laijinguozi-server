@@ -3,8 +3,8 @@ from django.db import transaction
 
 from sales.models import Orders, OrderDetails
 from users.models import DeliveryAddress
-from utils.common import Apportion
-from utils.constants import DeliverType
+from utils.common import Apportion, StockControl
+from utils.constants import DeliverType, OrderState
 
 
 class OnlyWriteOrderDetailSerializer(serializers.ModelSerializer):
@@ -40,7 +40,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
         # 转换成零售单位数量
         for record in order_details:
-            goods_stock = record['goods'].stock_set.first().stock
+            goods_stock = record['goods'].stock.first().stock
             if record['unit'].id == record['goods'].material.retail_unit.id:
                 if record['num'] > goods_stock:
                     raise serializers.ValidationError(f"{record['goods'].name}库存不足！")
@@ -100,12 +100,19 @@ class CreateOrderSerializer(serializers.ModelSerializer):
                     retail_unit_id = retail_unit_map.get(goods.id)
                     retail_unit_weight = weight_map.get(goods.id)
 
+                    retail_num = num if checked_unit.id == retail_unit_id else num * retail_unit_weight
+
                     order_detail = OrderDetails(**record)
-                    order_detail.retail_num = num if checked_unit.id == retail_unit_id else num * retail_unit_weight
+                    order_detail.retail_num = retail_num
                     order_detail.user = user
                     order_detail.order = order
                     order_detail.integral = integral_appo.calc_should_divided(num * price) if integral_appo else 0
                     order_detail.integral_deduct_price = integral_deduct_price_appo.calc_should_divided(num * price) if integral_deduct_price_appo else 0
+
+                    # 锁定库存
+                    stock = goods.stock.first()
+                    StockControl(stock.id).update_stock(-retail_num, retail_num)
+
                     details.append(order_detail)
                 OrderDetails.objects.bulk_create(details)
 
@@ -231,3 +238,42 @@ class OnlyReadOrdersSerializer(serializers.ModelSerializer):
 
     def get_count(self, obj):
         return obj.order_details.count()
+
+
+class OrderCancelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Orders
+        fields = ('state',)
+
+    def update(self, instance, validated_data):
+        """
+            取消订单
+            1、修改订单状态
+            2、释放锁定库存
+        :param instance:
+        :param validated_data:
+        :return:
+        """
+        if instance.state != OrderState.UNPAID.value:
+            raise serializers.ValidationError('待支付状态的订单才能取消！')
+
+        state = validated_data.get('state')
+        try:
+            with transaction.atomic():
+                instance.state = state
+                instance.save()
+
+                for order_detail in instance.order_details.all():
+                    order_detail.state = state
+                    order_detail.save()
+
+                    # 释放锁定库存
+                    stock = order_detail.goods.stock.first()
+                    StockControl(stock.id).update_stock(order_detail.retail_num, -order_detail.retail_num)
+        except Exception as e:
+            transaction.rollback()
+            raise e
+        else:
+            transaction.commit()
+        return instance

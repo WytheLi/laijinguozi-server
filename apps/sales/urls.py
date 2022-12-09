@@ -9,6 +9,8 @@ urlpatterns = [
     path('orders', views.OrderViewSet.as_view({'get': 'list'})),
     # 订单明细
     path('order/<int:pk>', views.OrderViewSet.as_view({'get': 'get'})),
+    # 取消订单
+    path('order/cancel/<int:pk>', views.OrderCancelView.as_view()),
     # 支付订单
     path('order/payment/<int:pk>', views.OrderPaymentView.as_view()),
     # 支付回调地址

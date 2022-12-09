@@ -8,29 +8,29 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_jwt.settings import api_settings
-from rest_framework_jwt.views import ObtainJSONWebToken
 
-from utils.response import success, fail
+from utils.response import success
 from .models import Users
-from .serializers import WechatLoginSerializer, UserSerializer, WechatRegisterSerializer
+from .serializers import WechatLoginSerializer, UserSerializer, WechatRegisterSerializer, LoginSerializer
 
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 
 # Create your views here.
 
 
-class LoginView(ObtainJSONWebToken):
+class LoginView(GenericAPIView):
     """
         # 登录并签发token
         # 其中头部信息的组装，token的生成
+            rest_framework_jwt.views.ObtainJSONWebToken
             # rest_framework_jwt.utils.jwt_payload_handler
             # rest_framework_jwt.utils.jwt_encode_handler
     """
+    serializer_class = LoginSerializer
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
-        if not serializer.is_valid():
-            raise ParseError('用户名或密码错误！')
+        serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data.get('user')
         token = serializer.validated_data.get('token')
