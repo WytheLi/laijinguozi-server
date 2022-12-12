@@ -106,4 +106,4 @@ class CartCheckedSerializer(serializers.Serializer):
 
     class Meta:
         list_serializer_class = CartCheckedListSerializer
-        fields = ('goods', 'checked_unit')
+        fields = ('goods', 'checked_unit', "num")
