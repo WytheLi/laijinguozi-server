@@ -12,7 +12,7 @@ from utils.response import success
 from .models import Material, Goods, Stock
 from .serializers import OnlyWriteMaterialSerializer, OnlyReadMaterialSerializer, \
     OnlyWriteGoodsSerializer, OnlyReadGoodsSerializer, CheckedMaterialCreateGoodsSerializer, \
-    AddStockSerializer, GoodsStateChangeSerializer
+    AddStockSerializer, GoodsStateUpdateSerializer, GoodsStateBulkUpdateSerializer
 
 
 # Create your views here.
@@ -196,7 +196,7 @@ class GoodsViewSet(viewsets.GenericViewSet):
         serializer.save()
         return success()
 
-    def change_state(self, request, pk, *args, **kwargs):
+    def update_state(self, request, pk, *args, **kwargs):
         """
             商品状态变更
                 - 待审核 -> 审核通过
@@ -210,7 +210,25 @@ class GoodsViewSet(viewsets.GenericViewSet):
         :return:
         """
         goods = Goods.objects.get(pk=pk)
-        serializer = GoodsStateChangeSerializer(instance=goods, data=request.data)
+        serializer = GoodsStateUpdateSerializer(instance=goods, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success()
+
+    def bulk_update(self, request, *args, **kwargs):
+        """
+            商品状态批量更新
+
+            /goods/state/update     POST
+            [{"id": 1, "state": 5},]
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        goods_ids = map(lambda x: x['id'], request.data)
+        queryset = Goods.objects.filter(is_delete=False, id__in=goods_ids).all()
+        serializer = GoodsStateBulkUpdateSerializer(instance=queryset, data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return success()

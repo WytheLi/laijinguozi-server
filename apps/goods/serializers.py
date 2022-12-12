@@ -142,7 +142,7 @@ class CheckedMaterialCreateGoodsSerializer(serializers.ModelSerializer):
                   'enable_whole_piece', 'enable_retail', 'whole_piece_launched_num', 'retail_launched_num', 'k', 'store')
 
 
-class GoodsStateChangeSerializer(serializers.ModelSerializer):
+class GoodsStateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Goods
@@ -170,6 +170,35 @@ class GoodsStateChangeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('状态修改失败！')
         instance.save()
         return instance
+
+
+class GoodsStateBulkUpdateListSerializer(serializers.ListSerializer):
+
+    def update(self, instance, validated_data):
+        if len(instance) != len(self.child.initial_data):
+            raise serializers.ValidationError('批量更新失败！')
+
+        goods_map = {goods.id: goods for goods in instance}
+        data_map = {item['id']: item for item in self.child.initial_data}
+
+        ret = []
+        for goods_id, data in data_map.items():
+            goods = goods_map.get(goods_id, None)
+            if goods:
+                if not (goods.state == GoodsState.UN_CHECKED.value and data['state'] in GoodsState.CHECKED.value) \
+                    or not (goods.state == GoodsState.ON_SALE.value and data['state'] == GoodsState.UN_SALE.value) \
+                        or not (goods.state in [GoodsState.APPROVE.value, GoodsState.UN_SALE.value] and data['state'] == GoodsState.ON_SALE.value):
+                    raise serializers.ValidationError(f'{goods.material.name}')
+            ret.append(self.child.update(goods, data))
+        return ret
+
+
+class GoodsStateBulkUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        list_serializer_class = GoodsStateBulkUpdateListSerializer
+        model = Goods
+        fields = ('state',)
 
 
 class AddStockSerializer(serializers.ModelSerializer):

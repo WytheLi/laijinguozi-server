@@ -122,8 +122,8 @@ class Goods(BaseModel):
     material = models.ForeignKey(Material, models.CASCADE, related_name='material', verbose_name='物料')
     whole_piece_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件价格')
     retail_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售价格')
-    whole_piece_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件售卖折后价')
-    retail_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售售卖折后价')
+    # whole_piece_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='整件售卖折后价')
+    # retail_discount_price = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'), verbose_name='零售售卖折后价')
     enable_whole_piece = models.BooleanField(default=False, verbose_name='整件售卖')
     enable_retail = models.BooleanField(default=True, verbose_name='零售售卖')
 
