@@ -1,7 +1,9 @@
+from decimal import Decimal
+
 from django_redis import get_redis_connection
 from rest_framework import serializers
 
-from goods.models import Goods, Material
+from goods.models import Goods, Material, GoodsUnit
 
 
 class CartSerializer(serializers.Serializer):
@@ -56,3 +58,52 @@ class CartGoodsSerializer(serializers.ModelSerializer):
         model = Goods
         fields = ('material', 'whole_piece_price', 'retail_price', 'whole_piece_discount_price', 'retail_discount_price',
                   'enable_whole_piece', 'enable_retail', 'has_stock', 'has_stock_retail', 'id')
+
+
+class CartCheckedListSerializer(serializers.ListSerializer):
+
+    def validate(self, attrs):
+        """
+            计算最佳优惠
+            1、统计总金额
+            2、计算优惠
+        :param attrs:
+        :return:
+        """
+        total_price = 0
+        for record in attrs:
+            goods = record['goods']
+            checked_unit = record['checked_unit']
+            num = record['num']
+            if goods.material.retail_unit == checked_unit:
+                total_price += goods.retail_price * num
+            elif goods.material.purchase_unit == checked_unit:
+                total_price += goods.whole_piece_price * num
+            else:
+                raise serializers.ValidationError(f'{goods.material.name}单位错误！')
+
+        # 用户积分最大抵扣
+        user = self.context['request'].user
+        integral_deduct_price = user.total_points / Decimal('100.00') if user.total_points else 0
+        amount_after_discount = total_price - integral_deduct_price
+
+        # 优惠后满68能下单
+        has_place_order = True if amount_after_discount >= 68 else False
+
+        data = {
+            'total_price': total_price,
+            'amount_after_discount': amount_after_discount,
+            'has_place_order': has_place_order
+        }
+        return data
+
+
+class CartCheckedSerializer(serializers.Serializer):
+
+    goods = serializers.PrimaryKeyRelatedField(queryset=Goods.objects.filter(), write_only=True, required=True)
+    checked_unit = serializers.PrimaryKeyRelatedField(queryset=GoodsUnit.objects.filter(), write_only=True, required=True)
+    num = serializers.DecimalField(max_digits=8, decimal_places=2, write_only=True, required=True)
+
+    class Meta:
+        list_serializer_class = CartCheckedListSerializer
+        fields = ('goods', 'checked_unit')

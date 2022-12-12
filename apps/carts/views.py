@@ -2,11 +2,12 @@ from django.shortcuts import render
 from django_redis import get_redis_connection
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import GenericAPIView
 
 from goods.models import Goods
 from utils import constants
 from utils.response import success
-from .serializers import CartSerializer, CartGoodsSerializer
+from .serializers import CartSerializer, CartGoodsSerializer, CartCheckedSerializer
 
 
 # Create your views here.
@@ -93,3 +94,31 @@ class CartViewSet(viewsets.GenericViewSet):
         for record in records:
             record.update(carts.get(str(record['id'])))
         return records
+
+
+class CartCheckedView(GenericAPIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    serializer_class = CartCheckedSerializer
+
+    def post(self, request, *args, **kwargs):
+        """
+            购物车选中优惠计算
+
+            [
+                {
+                    "goods": 1,
+                    "checked_unit": 2,
+                    "num": 2
+                },
+            ]
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        return success(serializer.validated_data)

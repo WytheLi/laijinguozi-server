@@ -56,7 +56,7 @@ class Users(AbstractUser, BaseModel):
             username,mobile,email重复
         :return:
         """
-        all_user = Users.objects.all()
+        all_user = Users.objects.filter(is_active=True).all()
         all_username = map(lambda user: user.username, all_user)
         all_mobile = map(lambda user: user.mobile, all_user)
         all_email = map(lambda user: user.email, all_user)
